@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_gradient"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Título -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tu perfil musical"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@color/black_primary"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Foto de perfil -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginBottom="28dp">
+
+            <ImageView
+                android:id="@+id/imgFotoPerfil"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/ic_person_placeholder"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_foto_perfil"
+                android:clickable="true"
+                android:focusable="true"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCambiarFoto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cambiar foto"
+                android:textSize="13sp"
+                android:textColor="@color/black_primary"
+                app:backgroundTint="@android:color/transparent"
+                app:strokeColor="@color/black_primary"
+                app:strokeWidth="1dp"
+                app:cornerRadius="20dp"
+                android:layout_marginTop="10dp"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"/>
+        </LinearLayout>
+
+        <!-- Nombre -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="NOMBRE" android:textSize="11sp" android:textStyle="bold"
+            android:textColor="@color/black_primary" android:letterSpacing="0.1"
+            android:layout_marginBottom="6dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/Widget.AcordeHub.TextInputLayout"
+            android:layout_marginBottom="20dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNombre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Rol -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="ROL" android:textSize="11sp" android:textStyle="bold"
+            android:textColor="@color/black_primary" android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupRol"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Géneros -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="GÉNEROS" android:textSize="11sp" android:textStyle="bold"
+            android:textColor="@color/black_primary" android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupGeneros"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Instrumentos -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="INSTRUMENTOS" android:textSize="11sp" android:textStyle="bold"
+            android:textColor="@color/black_primary" android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupInstrumentos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Nivel -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="NIVEL" android:textSize="11sp" android:textStyle="bold"
+            android:textColor="@color/black_primary" android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupNivel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Artistas Favoritos (Spotify) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/mis_artistas_favoritos" android:textSize="11sp" android:textStyle="bold"
+                android:textColor="@color/black_primary" android:letterSpacing="0.1"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVincularSpotify"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/conectar_spotify"
+                android:textSize="11sp"
+                app:icon="@drawable/ic_spotify"
+                app:iconSize="14dp"
+                app:backgroundTint="#1DB954"
+                app:cornerRadius="20dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                style="@style/Widget.Material3.Button.TonalButton"/>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvArtistasFavoritos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Descripción -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="DESCRIPCIÓN" android:textSize="11sp" android:textStyle="bold"
+            android:textColor="@color/black_primary" android:letterSpacing="0.1"
+            android:layout_marginBottom="6dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilDescripcion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Contá algo sobre vos..."
+            style="@style/Widget.AcordeHub.TextInputLayout"
+            android:layout_marginBottom="20dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etDescripcion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:gravity="top"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Ubicación -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="UBICACIÓN" android:textSize="11sp" android:textStyle="bold"
+            android:textColor="@color/black_primary" android:letterSpacing="0.1"
+            android:layout_marginBottom="6dp"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilUbicacion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ciudad, provincia..."
+            style="@style/Widget.AcordeHub.TextInputLayout"
+            android:layout_marginBottom="32dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etUbicacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Loading -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:indeterminateTint="@color/black_primary"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Botón guardar -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGuardar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/guardar_perfil"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/black_primary"
+            app:cornerRadius="14dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Botón cerrar sesión -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/cerrar_sesion"
+            android:textSize="16sp"
+            android:textColor="@color/black_primary"
+            app:backgroundTint="@android:color/transparent"
+            app:strokeColor="@color/black_primary"
+            app:strokeWidth="1dp"
+            app:cornerRadius="14dp"
+            android:layout_marginBottom="32dp"/>
+
+    </LinearLayout>
+</ScrollView>

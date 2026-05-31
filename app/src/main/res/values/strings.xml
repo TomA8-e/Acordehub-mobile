@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Acorde Hub</string>
+    <string name="default_web_client_id">995183064288-3kkmj1hh9gsamj4aij297i6lv7k6n8kb.apps.googleusercontent.com</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
+    <string name="guardar_perfil">Guardar perfil</string>
+
+    <string name="spotify_redirect_uri">acordehub://callback</string>
+
+    <string name="mis_artistas_favoritos">MIS ARTISTAS FAVORITOS</string>
+    <string name="conectar_spotify">Añadir Artista</string>
+    <string name="buscar_artista">Buscar artista...</string>
+</resources>

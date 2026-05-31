@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ── Paleta principal Acorde Hub ── -->
+    <color name="orange_primary">#F5A623</color>
+    <color name="yellow_accent">#F7C948</color>
+    <color name="black_primary">#1A1A1A</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- ── Variantes ── -->
+    <color name="orange_dark">#D4881A</color>
+    <color name="orange_light">#FAD080</color>
+    <color name="surface_white">#80FFFFFF</color>  <!-- blanco 50% para cards -->
+    <color name="black_soft">#2C2C2C</color>       <!-- texto secundario -->
+    <color name="gray_hint">#666666</color>         <!-- hints, placeholders -->
+
+    <!-- ── Semánticos (errores, éxito) ── -->
+    <color name="error">#E53935</color>
+    <color name="success">#2E7D32</color>
+
+    <!-- ── Fondo degradado (referencia, se aplica en XML de layout) ── -->
+    <!-- De #F5A623 (arriba) a #F7C948 (abajo) -->
+
+</resources>

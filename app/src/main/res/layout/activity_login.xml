@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Archivo: app/src/main/res/layout/activity_login.xml -->
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="28dp"
+        android:gravity="center_horizontal">
+
+        <!-- Logo -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="acorde hub."
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="@color/black_primary"
+            android:layout_marginTop="64dp"
+            android:letterSpacing="-0.03"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Conectá con músicos"
+            android:textSize="15sp"
+            android:textColor="@color/black_soft"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="48dp"/>
+
+        <!-- Email -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            style="@style/Widget.AcordeHub.TextInputLayout"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textEmailAddress"
+                android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Contraseña -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Contraseña"
+            app:endIconMode="password_toggle"
+            style="@style/Widget.AcordeHub.TextInputLayout"
+            android:layout_marginBottom="28dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:imeOptions="actionDone"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Botón iniciar sesión -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogin"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Iniciar sesión"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/black_primary"
+            app:cornerRadius="14dp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Divisor -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+            <View android:layout_width="0dp" android:layout_height="1dp"
+                android:layout_weight="1" android:background="@color/black_soft" android:alpha="0.3"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="  o  " android:textColor="@color/black_soft"/>
+            <View android:layout_width="0dp" android:layout_height="1dp"
+                android:layout_weight="1" android:background="@color/black_soft" android:alpha="0.3"/>
+        </LinearLayout>
+
+        <!-- Botón Google -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGoogle"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Continuar con Google"
+            android:textColor="@color/black_primary"
+            app:backgroundTint="@color/white"
+            app:strokeColor="@color/black_primary"
+            app:strokeWidth="1.5dp"
+            app:cornerRadius="14dp"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Loading -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminateTint="@color/black_primary"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Link a registro -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="¿No tenés cuenta? "
+                android:textColor="@color/black_soft"/>
+            <TextView
+                android:id="@+id/tvGoToRegister"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Registrate"
+                android:textColor="@color/black_primary"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
