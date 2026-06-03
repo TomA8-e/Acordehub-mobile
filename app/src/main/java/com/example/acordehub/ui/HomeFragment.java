@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.bumptech.glide.Glide;
 import com.example.acordehub.R;
@@ -68,8 +69,8 @@ public class HomeFragment extends Fragment {
         binding.btnNotifications.setOnClickListener(v -> 
             Toast.makeText(getContext(), "Notificaciones (Próximamente)", Toast.LENGTH_SHORT).show());
         
-        binding.btnMessages.setOnClickListener(v -> 
-            Toast.makeText(getContext(), "Mensajes (Próximamente)", Toast.LENGTH_SHORT).show());
+        binding.btnMessages.setOnClickListener(v ->
+            NavHostFragment.findNavController(this).navigate(R.id.chatFragment));
 
         binding.btnQuickActionCreate.setOnClickListener(v ->
             startActivity(new Intent(requireContext(), PublishProjectActivity.class)));
