@@ -15,16 +15,13 @@
         android:padding="28dp"
         android:gravity="center_horizontal">
 
-        <!-- Logo -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="acorde hub."
-            android:textSize="32sp"
-            android:textStyle="bold"
-            android:textColor="@color/black_primary"
+        <ImageView
+            android:layout_width="220dp"
+            android:layout_height="220dp"
             android:layout_marginTop="64dp"
-            android:letterSpacing="-0.03"/>
+            android:contentDescription="@string/app_name"
+            android:scaleType="fitCenter"
+            android:src="@drawable/acordehub"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -32,8 +29,8 @@
             android:text="Conectá con músicos"
             android:textSize="15sp"
             android:textColor="@color/black_soft"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="48dp"/>
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="32dp"/>
 
         <!-- Email -->
         <com.google.android.material.textfield.TextInputLayout

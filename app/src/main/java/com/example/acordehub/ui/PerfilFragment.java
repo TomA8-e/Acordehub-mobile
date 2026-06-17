@@ -15,7 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.example.acordehub.R;
@@ -25,9 +25,12 @@ import com.example.acordehub.modelos.FavoriteArtist;
 import com.example.acordehub.modelos.UserModel;
 import com.example.acordehub.perfil.PerfilVistaModelo;
 import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class PerfilFragment extends Fragment {
 
@@ -35,21 +38,26 @@ public class PerfilFragment extends Fragment {
     private PerfilVistaModelo perfilVistaModelo;
     private AuthVistaModelo authVistaModelo;
     private String currentPhotoUrl = "";
-    private List<FavoriteArtist> selectedArtists = new ArrayList<>();
+    private final List<FavoriteArtist> selectedArtists = new ArrayList<>();
     private SelectedArtistAdapter artistsAdapter;
+    private UserModel currentUser;
+    private final SimpleDateFormat memberSinceFormat = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
 
-    // Launcher para Buscador de Artistas (Spotify)
+    private static final String[] ROLES = {"Musico", "Productor", "Cantante", "Guitarrista", "Bajista", "Baterista", "Pianista", "DJ"};
+    private static final String[] GENEROS = {"Rock", "Pop", "Metal", "R&B", "Rap", "Jazz", "Cumbia", "Electronica", "Folklore", "Clasica"};
+    private static final String[] INSTRUMENTOS = {"Guitarra", "Bajo", "Bateria", "Piano", "Voz", "Violin", "Trompeta", "Saxofon", "Teclado"};
+    private static final String[] NIVELES = {"Principiante", "Intermedio", "Avanzado"};
+
     private final ActivityResultLauncher<Intent> artistSearchLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     String artistName = result.getData().getStringExtra("ARTIST_NAME");
                     String artistImage = result.getData().getStringExtra("ARTIST_IMAGE");
-                    
+
                     if (artistName != null) {
-                        // Evitar duplicados
                         boolean exists = false;
-                        for (FavoriteArtist fa : selectedArtists) {
-                            if (fa.getName().equals(artistName)) {
+                        for (FavoriteArtist artist : selectedArtists) {
+                            if (artist.getName() != null && artist.getName().equalsIgnoreCase(artistName)) {
                                 exists = true;
                                 break;
                             }
@@ -62,21 +70,12 @@ public class PerfilFragment extends Fragment {
                 }
             });
 
-    // ── Roles, géneros, instrumentos y niveles disponibles ────────────────────
-    private static final String[] ROLES        = {"Músico", "Productor", "Cantante", "Guitarrista", "Bajista", "Baterista", "Pianista", "DJ"};
-    private static final String[] GENEROS      = {"Rock", "Pop", "Metal", "R&B", "Rap", "Jazz", "Cumbia", "Electrónica", "Folklore", "Clásica"};
-    private static final String[] INSTRUMENTOS = {"Guitarra", "Bajo", "Batería", "Piano", "Voz", "Violín", "Trompeta", "Saxofón", "Teclado"};
-    private static final String[] NIVELES      = {"Principiante", "Intermedio", "Avanzado"};
-
-    // Launcher para seleccionar imagen de galería
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Uri imageUri = result.getData().getData();
                     if (imageUri != null) {
-                        // Mostrar preview inmediato
                         Glide.with(this).load(imageUri).circleCrop().into(binding.imgFotoPerfil);
-                        // Subir a Firebase Storage
                         perfilVistaModelo.subirFoto(imageUri);
                     }
                 }
@@ -104,120 +103,52 @@ public class PerfilFragment extends Fragment {
         perfilVistaModelo.cargarPerfil();
     }
 
-    // ── Setup de chips ────────────────────────────────────────────────────────
-
     private void setupRecyclerViews() {
         artistsAdapter = new SelectedArtistAdapter(position -> {
             selectedArtists.remove(position);
             artistsAdapter.setArtists(selectedArtists);
         });
+        binding.rvArtistasFavoritos.setLayoutManager(
+                new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.rvArtistasFavoritos.setAdapter(artistsAdapter);
     }
 
     private void setupChips() {
-        // Roles (selección única)
-        for (String rol : ROLES) {
-            Chip chip = crearChip(rol, false);
-            binding.chipGroupRol.addView(chip);
-        }
-
-        // Géneros (selección múltiple)
-        for (String genero : GENEROS) {
-            Chip chip = crearChip(genero, true);
-            binding.chipGroupGeneros.addView(chip);
-        }
-
-        // Instrumentos (selección múltiple)
-        for (String instrumento : INSTRUMENTOS) {
-            Chip chip = crearChip(instrumento, true);
-            binding.chipGroupInstrumentos.addView(chip);
-        }
-
-        // Niveles (selección única)
-        for (String nivel : NIVELES) {
-            Chip chip = crearChip(nivel, false);
-            binding.chipGroupNivel.addView(chip);
-        }
+        for (String role : ROLES) binding.chipGroupRol.addView(createEditableChip(role));
+        for (String genre : GENEROS) binding.chipGroupGeneros.addView(createEditableChip(genre));
+        for (String instrument : INSTRUMENTOS) binding.chipGroupInstrumentos.addView(createEditableChip(instrument));
+        for (String level : NIVELES) binding.chipGroupNivel.addView(createEditableChip(level));
     }
 
-    private Chip crearChip(String texto, boolean multiSelect) {
+    private Chip createEditableChip(String text) {
         Chip chip = new Chip(requireContext());
-        chip.setText(texto);
+        chip.setId(View.generateViewId());
+        chip.setText(text);
         chip.setCheckable(true);
         chip.setCheckedIconVisible(false);
-
-        // Estilo visual: negro cuando está seleccionado, blanco transparente cuando no
         chip.setChipBackgroundColorResource(R.color.chip_selector);
         chip.setTextColor(requireContext().getColorStateList(R.color.chip_text_selector));
         chip.setChipStrokeColorResource(R.color.black_primary);
         chip.setChipStrokeWidth(1.5f);
-
         return chip;
     }
 
-    // ── Listeners ─────────────────────────────────────────────────────────────
-
     private void setupClickListeners() {
-        // Seleccionar foto
-        binding.imgFotoPerfil.setOnClickListener(v -> abrirGaleria());
-        binding.btnCambiarFoto.setOnClickListener(v -> abrirGaleria());
-
-        // Guardar perfil
-        binding.btnGuardar.setOnClickListener(v -> guardarPerfil());
-
-        // Spotify (Abre el buscador directamente)
-        binding.btnVincularSpotify.setOnClickListener(v -> abrirBuscadorArtistas());
-
-        // Cerrar sesión
-        binding.btnLogout.setOnClickListener(v -> cerrarSesion());
+        binding.btnEditProfile.setOnClickListener(v -> setEditMode(true));
+        binding.btnCancelEdit.setOnClickListener(v -> {
+            if (currentUser != null) populateUi(currentUser);
+            setEditMode(false);
+        });
+        binding.imgFotoPerfil.setOnClickListener(v -> openGallery());
+        binding.btnCambiarFoto.setOnClickListener(v -> openGallery());
+        binding.btnGuardar.setOnClickListener(v -> saveProfile());
+        binding.btnVincularSpotify.setOnClickListener(v -> openArtistSearch());
+        binding.btnLogout.setOnClickListener(v -> logout());
     }
-
-    private void cerrarSesion() {
-        authVistaModelo.logout();
-        Intent intent = new Intent(requireContext(), LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-    }
-
-    private void abrirGaleria() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
-        imagePickerLauncher.launch(intent);
-    }
-
-    private void guardarPerfil() {
-        String name        = binding.etNombre.getText().toString().trim();
-        String description = binding.etDescripcion.getText().toString().trim();
-        String location    = binding.etUbicacion.getText().toString().trim();
-
-        if (name.isEmpty()) {
-            binding.tilNombre.setError("Ingresá tu nombre");
-            return;
-        }
-
-        String role  = getChipSeleccionado(binding.chipGroupRol);
-        String level = getChipSeleccionado(binding.chipGroupNivel);
-        List<String> genres      = getChipsSeleccionados(binding.chipGroupGeneros);
-        List<String> instruments = getChipsSeleccionados(binding.chipGroupInstrumentos);
-
-        perfilVistaModelo.guardarPerfil(name, role, genres, instruments,
-                level, description, location, currentPhotoUrl, selectedArtists);
-    }
-
-    // ── Spotify Logic ────────────────────────────────────────────────────────
-
-    private void abrirBuscadorArtistas() {
-        Intent intent = new Intent(requireContext(), SpotifyArtistSearchActivity.class);
-        artistSearchLauncher.launch(intent);
-    }
-
-    // ── Observar ViewModel ────────────────────────────────────────────────────
 
     private void observeViewModel() {
-        // Perfil cargado → poblar la UI
-        perfilVistaModelo.getPerfilLiveData().observe(getViewLifecycleOwner(), this::poblarUI);
+        perfilVistaModelo.getPerfilLiveData().observe(getViewLifecycleOwner(), this::populateUi);
 
-        // URL de foto subida
         perfilVistaModelo.getFotoUrlLiveData().observe(getViewLifecycleOwner(), url -> {
             if (url != null) {
                 currentPhotoUrl = url;
@@ -225,99 +156,226 @@ public class PerfilFragment extends Fragment {
             }
         });
 
-        // Guardado exitoso
         perfilVistaModelo.getGuardadoLiveData().observe(getViewLifecycleOwner(), ok -> {
             if (ok != null && ok) {
-                Toast.makeText(requireContext(), "Perfil guardado ✓", Toast.LENGTH_SHORT).show();
-                // Navegar al Home después de guardar
-                NavController navController = androidx.navigation.fragment.NavHostFragment.findNavController(this);
-                navController.navigate(R.id.homeFragment);
+                Toast.makeText(requireContext(), "Perfil guardado", Toast.LENGTH_SHORT).show();
+                setEditMode(false);
+                perfilVistaModelo.cargarPerfil();
             }
         });
 
-        // Errores
         perfilVistaModelo.getErrorLiveData().observe(getViewLifecycleOwner(), error -> {
             if (error != null) Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show();
         });
 
-        // Loading
         perfilVistaModelo.getLoadingLiveData().observe(getViewLifecycleOwner(), isLoading -> {
-            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-            binding.btnGuardar.setEnabled(!isLoading);
+            boolean loading = isLoading != null && isLoading;
+            binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+            binding.btnGuardar.setEnabled(!loading);
+            binding.btnEditProfile.setEnabled(!loading);
         });
     }
 
-    // ── Poblar UI con datos del perfil ────────────────────────────────────────
-
-    private void poblarUI(UserModel user) {
+    private void populateUi(UserModel user) {
         if (user == null) return;
+        currentUser = user;
 
         binding.etNombre.setText(user.getName());
         binding.etDescripcion.setText(user.getDescription());
         binding.etUbicacion.setText(user.getLocation());
         currentPhotoUrl = user.getPhotoUrl() != null ? user.getPhotoUrl() : "";
 
-        // Foto de perfil
-        if (!currentPhotoUrl.isEmpty()) {
-            Glide.with(this)
-                    .load(currentPhotoUrl)
-                    .circleCrop()
-                    .placeholder(R.drawable.ic_person_placeholder)
-                    .into(binding.imgFotoPerfil);
-        }
+        bindPhotos(currentPhotoUrl);
+        clearEditableChips();
+        markChip(binding.chipGroupRol, user.getRole());
+        markChip(binding.chipGroupNivel, user.getLevel());
 
-        // Marcar rol
-        marcarChip(binding.chipGroupRol, user.getRole());
-
-        // Marcar nivel
-        marcarChip(binding.chipGroupNivel, user.getLevel());
-
-        // Marcar géneros
         if (user.getGenres() != null) {
-            for (String g : user.getGenres()) marcarChip(binding.chipGroupGeneros, g);
+            for (String genre : user.getGenres()) markChip(binding.chipGroupGeneros, genre);
         }
-
-        // Marcar instrumentos
         if (user.getInstruments() != null) {
-            for (String i : user.getInstruments()) marcarChip(binding.chipGroupInstrumentos, i);
+            for (String instrument : user.getInstruments()) markChip(binding.chipGroupInstrumentos, instrument);
         }
 
-        // Mostrar artistas favoritos
         selectedArtists.clear();
-        if (user.getFavoriteArtists() != null) {
-            selectedArtists.addAll(user.getFavoriteArtists());
-        }
+        if (user.getFavoriteArtists() != null) selectedArtists.addAll(user.getFavoriteArtists());
         artistsAdapter.setArtists(selectedArtists);
+
+        populateProfileView(user);
     }
 
-    // ── Helpers para chips ────────────────────────────────────────────────────
+    private void populateProfileView(UserModel user) {
+        binding.tvProfileName.setText(valueOrFallback(user.getName(), "Usuario"));
+        binding.tvProfileRole.setText(valueOrFallback(user.getRole(), "Rol musical sin definir"));
+        binding.tvProfileLocation.setText(valueOrFallback(user.getLocation(), "Ubicacion no definida"));
+        binding.tvAboutDescription.setText(valueOrFallback(user.getDescription(), "Todavia no agregaste una descripcion."));
+        binding.tvProfileLevel.setText(valueOrFallback(user.getLevel(), "Sin definir"));
+        binding.tvProfileEmail.setText(valueOrFallback(user.getEmail(), "Sin email"));
 
-    private void marcarChip(com.google.android.material.chip.ChipGroup group, String texto) {
-        if (texto == null || texto.isEmpty()) return;
+        bindDisplayChips(binding.chipGroupProfileGenres, user.getGenres(), "Sin generos definidos");
+        bindDisplayChips(binding.chipGroupProfileInstruments, user.getInstruments(), "Sin instrumentos definidos");
+        bindArtistChips(user.getFavoriteArtists());
+
+        binding.tvStatGenres.setText(String.valueOf(countValues(user.getGenres())));
+        binding.tvStatArtists.setText(String.valueOf(user.getFavoriteArtists() != null ? user.getFavoriteArtists().size() : 0));
+        binding.tvMemberSince.setText(user.getCreatedAt() != null ? memberSinceFormat.format(user.getCreatedAt()) : "Nuevo");
+    }
+
+    private void bindPhotos(String photoUrl) {
+        if (photoUrl == null || photoUrl.trim().isEmpty()) {
+            binding.imgFotoPerfil.setImageResource(R.drawable.ic_person_placeholder);
+            binding.imgProfilePhotoView.setImageResource(R.drawable.ic_person_placeholder);
+            return;
+        }
+
+        Glide.with(this)
+                .load(photoUrl)
+                .circleCrop()
+                .placeholder(R.drawable.ic_person_placeholder)
+                .into(binding.imgFotoPerfil);
+        Glide.with(this)
+                .load(photoUrl)
+                .circleCrop()
+                .placeholder(R.drawable.ic_person_placeholder)
+                .into(binding.imgProfilePhotoView);
+    }
+
+    private void bindDisplayChips(ChipGroup group, List<String> values, String fallback) {
+        group.removeAllViews();
+        boolean added = false;
+        if (values != null) {
+            for (String value : values) {
+                if (value != null && !value.trim().isEmpty()) {
+                    group.addView(createDisplayChip(value.trim()));
+                    added = true;
+                }
+            }
+        }
+        if (!added) group.addView(createDisplayChip(fallback));
+    }
+
+    private void bindArtistChips(List<FavoriteArtist> artists) {
+        binding.chipGroupProfileArtists.removeAllViews();
+        boolean added = false;
+        if (artists != null) {
+            for (FavoriteArtist artist : artists) {
+                if (artist.getName() != null && !artist.getName().trim().isEmpty()) {
+                    binding.chipGroupProfileArtists.addView(createDisplayChip(artist.getName().trim()));
+                    added = true;
+                }
+            }
+        }
+        if (!added) binding.chipGroupProfileArtists.addView(createDisplayChip("Sin artistas vinculados"));
+    }
+
+    private Chip createDisplayChip(String text) {
+        Chip chip = new Chip(requireContext());
+        chip.setText(text);
+        chip.setTextSize(11);
+        chip.setTextColor(requireContext().getColor(R.color.white));
+        chip.setChipBackgroundColorResource(R.color.black_soft);
+        chip.setCheckable(false);
+        chip.setClickable(false);
+        chip.setCloseIconVisible(false);
+        chip.setChipMinHeight(28);
+        return chip;
+    }
+
+    private void saveProfile() {
+        String name = binding.etNombre.getText().toString().trim();
+        String description = binding.etDescripcion.getText().toString().trim();
+        String location = binding.etUbicacion.getText().toString().trim();
+
+        if (name.isEmpty()) {
+            binding.tilNombre.setError("Ingresa tu nombre");
+            return;
+        }
+        binding.tilNombre.setError(null);
+
+        String role = getSelectedChip(binding.chipGroupRol);
+        String level = getSelectedChip(binding.chipGroupNivel);
+        List<String> genres = getSelectedChips(binding.chipGroupGeneros);
+        List<String> instruments = getSelectedChips(binding.chipGroupInstrumentos);
+
+        perfilVistaModelo.guardarPerfil(name, role, genres, instruments,
+                level, description, location, currentPhotoUrl, selectedArtists);
+    }
+
+    private void logout() {
+        authVistaModelo.logout();
+        Intent intent = new Intent(requireContext(), LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
+        imagePickerLauncher.launch(intent);
+    }
+
+    private void openArtistSearch() {
+        Intent intent = new Intent(requireContext(), SpotifyArtistSearchActivity.class);
+        artistSearchLauncher.launch(intent);
+    }
+
+    private void setEditMode(boolean editing) {
+        binding.profileViewContainer.setVisibility(editing ? View.GONE : View.VISIBLE);
+        binding.editProfileContainer.setVisibility(editing ? View.VISIBLE : View.GONE);
+    }
+
+    private void clearEditableChips() {
+        clearChipGroup(binding.chipGroupRol);
+        clearChipGroup(binding.chipGroupNivel);
+        clearChipGroup(binding.chipGroupGeneros);
+        clearChipGroup(binding.chipGroupInstrumentos);
+    }
+
+    private void clearChipGroup(ChipGroup group) {
+        group.clearCheck();
+        for (int i = 0; i < group.getChildCount(); i++) {
+            ((Chip) group.getChildAt(i)).setChecked(false);
+        }
+    }
+
+    private void markChip(ChipGroup group, String text) {
+        if (text == null || text.trim().isEmpty()) return;
         for (int i = 0; i < group.getChildCount(); i++) {
             Chip chip = (Chip) group.getChildAt(i);
-            if (chip.getText().toString().equals(texto)) {
+            if (chip.getText().toString().equalsIgnoreCase(text.trim())) {
                 chip.setChecked(true);
                 break;
             }
         }
     }
 
-    private String getChipSeleccionado(com.google.android.material.chip.ChipGroup group) {
+    private String getSelectedChip(ChipGroup group) {
         int id = group.getCheckedChipId();
         if (id == View.NO_ID) return "";
         Chip chip = group.findViewById(id);
         return chip != null ? chip.getText().toString() : "";
     }
 
-    private List<String> getChipsSeleccionados(com.google.android.material.chip.ChipGroup group) {
-        List<String> seleccionados = new ArrayList<>();
-        List<Integer> ids = group.getCheckedChipIds();
-        for (int id : ids) {
+    private List<String> getSelectedChips(ChipGroup group) {
+        List<String> selected = new ArrayList<>();
+        for (int id : group.getCheckedChipIds()) {
             Chip chip = group.findViewById(id);
-            if (chip != null) seleccionados.add(chip.getText().toString());
+            if (chip != null) selected.add(chip.getText().toString());
         }
-        return seleccionados;
+        return selected;
+    }
+
+    private int countValues(List<String> values) {
+        if (values == null) return 0;
+        int count = 0;
+        for (String value : values) {
+            if (value != null && !value.trim().isEmpty()) count++;
+        }
+        return count;
+    }
+
+    private String valueOrFallback(String value, String fallback) {
+        return value != null && !value.trim().isEmpty() ? value : fallback;
     }
 
     @Override

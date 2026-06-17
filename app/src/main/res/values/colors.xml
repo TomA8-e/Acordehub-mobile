@@ -13,6 +13,11 @@
     <color name="surface_white">#80FFFFFF</color>  <!-- blanco 50% para cards -->
     <color name="black_soft">#2C2C2C</color>       <!-- texto secundario -->
     <color name="gray_hint">#666666</color>         <!-- hints, placeholders -->
+    <color name="profile_background">#050505</color>
+    <color name="profile_card">#111111</color>
+    <color name="profile_card_alt">#202020</color>
+    <color name="profile_border">#2A2A2A</color>
+    <color name="profile_text_secondary">#A7AFBC</color>
 
     <!-- ── Semánticos (errores, éxito) ── -->
     <color name="error">#E53935</color>

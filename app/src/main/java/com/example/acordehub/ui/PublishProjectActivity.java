@@ -88,9 +88,21 @@ public class PublishProjectActivity extends AppCompatActivity {
 
         setLoading(true);
 
+        String fallbackOwnerName = user.getDisplayName() != null ? user.getDisplayName() : "";
+        db.collection("users").document(user.getUid()).get()
+                .addOnSuccessListener(snapshot -> {
+                    String profileName = snapshot.getString("name");
+                    saveProject(user, title, description, genre,
+                            isNotEmpty(profileName) ? profileName : fallbackOwnerName);
+                })
+                .addOnFailureListener(e -> saveProject(user, title, description, genre, fallbackOwnerName));
+    }
+
+    private void saveProject(FirebaseUser user, String title, String description,
+                             String genre, String ownerName) {
         Map<String, Object> project = new HashMap<>();
         project.put("ownerUid", user.getUid());
-        project.put("ownerName", user.getDisplayName() != null ? user.getDisplayName() : "");
+        project.put("ownerName", ownerName);
         project.put("title", title);
         project.put("description", description);
         project.put("genre", genre);
@@ -110,6 +122,10 @@ public class PublishProjectActivity extends AppCompatActivity {
                     setLoading(false);
                     Toast.makeText(this, "No se pudo publicar: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
+    }
+
+    private boolean isNotEmpty(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     private void setLoading(boolean loading) {

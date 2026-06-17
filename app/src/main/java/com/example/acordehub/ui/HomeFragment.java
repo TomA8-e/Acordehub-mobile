@@ -18,19 +18,18 @@ import com.example.acordehub.R;
 import com.example.acordehub.auth.AuthVistaModelo;
 import com.example.acordehub.databinding.FragmentHomeBinding;
 import com.example.acordehub.perfil.PerfilVistaModelo;
-
-import java.util.ArrayList;
+import com.example.acordehub.proyectos.ProjectVistaModelo;
 
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private AuthVistaModelo authVistaModelo;
     private PerfilVistaModelo perfilVistaModelo;
-    
-    // Adaptadores (usaremos placeholders por ahora)
+    private ProjectVistaModelo projectVistaModelo;
+
     private SelectedArtistAdapter recommendationsAdapter;
     private SelectedArtistAdapter discoverAdapter;
-    // Agregaremos adaptadores específicos para Feed en el futuro
+    private ProjectAdapter projectAdapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -45,49 +44,47 @@ public class HomeFragment extends Fragment {
 
         authVistaModelo = new ViewModelProvider(this).get(AuthVistaModelo.class);
         perfilVistaModelo = new ViewModelProvider(this).get(PerfilVistaModelo.class);
+        projectVistaModelo = new ViewModelProvider(this).get(ProjectVistaModelo.class);
 
         setupRecyclerViews();
         setupClickListeners();
         observeViewModel();
 
         perfilVistaModelo.cargarPerfil();
+        projectVistaModelo.escucharProyectosDestacados();
+        projectVistaModelo.escucharMisProyectosActivos();
     }
 
     private void setupRecyclerViews() {
-        // Recomendaciones (Basado en Spotify)
         recommendationsAdapter = new SelectedArtistAdapter(null);
         binding.rvRecommendations.setAdapter(recommendationsAdapter);
 
-        // Descubrir Talentos
         discoverAdapter = new SelectedArtistAdapter(null);
         binding.rvDiscoverMusicians.setAdapter(discoverAdapter);
-        
-        // El feed de proyectos usará un adaptador distinto en el futuro
+
+        projectAdapter = new ProjectAdapter();
+        binding.rvProjectFeed.setAdapter(projectAdapter);
     }
 
     private void setupClickListeners() {
-        binding.btnNotifications.setOnClickListener(v -> 
-            Toast.makeText(getContext(), "Notificaciones (Próximamente)", Toast.LENGTH_SHORT).show());
-        
+        binding.btnNotifications.setOnClickListener(v ->
+                Toast.makeText(getContext(), "Notificaciones (Proximamente)", Toast.LENGTH_SHORT).show());
+
         binding.btnMessages.setOnClickListener(v ->
-            NavHostFragment.findNavController(this).navigate(R.id.chatFragment));
+                NavHostFragment.findNavController(this).navigate(R.id.chatFragment));
 
         binding.btnQuickActionCreate.setOnClickListener(v ->
-            startActivity(new Intent(requireContext(), PublishProjectActivity.class)));
-        
-        binding.btnQuickActionDiscover.setOnClickListener(v -> 
-            Toast.makeText(getContext(), "Explorar Músicos", Toast.LENGTH_SHORT).show());
-        
-        binding.btnQuickActionUpload.setOnClickListener(v ->
-            startActivity(new Intent(requireContext(), PublishProjectActivity.class)));
+                startActivity(new Intent(requireContext(), PublishProjectActivity.class)));
+
+        binding.btnQuickActionDiscover.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), ExploreMatchActivity.class)));
     }
 
     private void observeViewModel() {
-        // Saludo y Foto en Header
         perfilVistaModelo.getPerfilLiveData().observe(getViewLifecycleOwner(), user -> {
             if (user != null) {
-                binding.tvHeaderGreeting.setText("¡Hola, " + user.getName() + "!");
-                
+                binding.tvHeaderGreeting.setText("Hola, " + user.getName() + "!");
+
                 if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
                     Glide.with(this)
                             .load(user.getPhotoUrl())
@@ -96,10 +93,31 @@ public class HomeFragment extends Fragment {
                             .into(binding.ivHeaderProfile);
                 }
 
-                // Cargar artistas favoritos en la sección de recomendaciones
                 if (user.getFavoriteArtists() != null) {
                     recommendationsAdapter.setArtists(user.getFavoriteArtists());
                 }
+            }
+        });
+
+        projectVistaModelo.getProjectsLiveData().observe(getViewLifecycleOwner(), projects -> {
+            boolean hasProjects = projects != null && !projects.isEmpty();
+            projectAdapter.setProjects(projects);
+            binding.rvProjectFeed.setVisibility(hasProjects ? View.VISIBLE : View.GONE);
+            binding.tvEmptyProjects.setVisibility(hasProjects ? View.GONE : View.VISIBLE);
+        });
+
+        projectVistaModelo.getActiveProjectsCountLiveData().observe(getViewLifecycleOwner(), count -> {
+            int activeCount = count != null ? count : 0;
+            if (activeCount == 1) {
+                binding.tvActiveProjectsCount.setText("1 Activo");
+            } else {
+                binding.tvActiveProjectsCount.setText(activeCount + " Activos");
+            }
+        });
+
+        projectVistaModelo.getErrorLiveData().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.trim().isEmpty()) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
             }
         });
     }

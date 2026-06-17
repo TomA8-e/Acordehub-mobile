@@ -25,14 +25,22 @@
             android:layout_marginTop="52dp"
             android:letterSpacing="-0.03"/>
 
+        <ImageView
+            android:layout_width="148dp"
+            android:layout_height="148dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/app_name"
+            android:scaleType="fitCenter"
+            android:src="@drawable/acordehub"/>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Completá tus datos para empezar"
             android:textSize="14sp"
             android:textColor="@color/black_soft"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="36dp"/>
+            android:layout_marginTop="0dp"
+            android:layout_marginBottom="24dp"/>
 
         <!-- Nombre -->
         <com.google.android.material.textfield.TextInputLayout

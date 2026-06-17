@@ -11,9 +11,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/acordehub"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/acordehub"
         android:supportsRtl="true"
         android:theme="@style/Theme.AcordeHub"
         tools:replace="android:allowBackup">
@@ -36,6 +36,7 @@
         <activity android:name=".ui.SpotifyArtistSearchActivity" android:exported="false"/>
         <activity android:name=".ui.PublishProjectActivity" android:exported="false"/>
         <activity android:name=".ui.ChatDetailActivity" android:exported="false"/>
+        <activity android:name=".ui.ExploreMatchActivity" android:exported="false"/>
 
         <!-- HomeActivity ya no se usa como destino principal, puede eliminarse
              o mantenerse vacía por ahora -->

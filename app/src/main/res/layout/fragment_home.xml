@@ -185,36 +185,6 @@
                     android:textColor="@color/black_soft"/>
             </LinearLayout>
 
-            <!-- Subir Demo -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnQuickActionUpload"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:insetLeft="0dp"
-                    android:insetTop="0dp"
-                    android:insetRight="0dp"
-                    android:insetBottom="0dp"
-                    app:icon="@drawable/ic_upload"
-                    app:iconSize="24dp"
-                    app:iconPadding="0dp"
-                    app:cornerRadius="16dp"
-                    app:backgroundTint="#E8F5E9"
-                    app:iconTint="#388E3C"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Subir"
-                    android:textSize="11sp"
-                    android:layout_marginTop="4dp"
-                    android:textColor="@color/black_soft"/>
-            </LinearLayout>
         </LinearLayout>
 
         <!-- ── ESTADO DEL USUARIO ── -->
@@ -349,6 +319,19 @@
             android:paddingHorizontal="24dp"
             android:nestedScrollingEnabled="false"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <TextView
+            android:id="@+id/tvEmptyProjects"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="12dp"
+            android:padding="16dp"
+            android:text="Todavia no hay proyectos publicados"
+            android:textAlignment="center"
+            android:textColor="@color/gray_hint"
+            android:textSize="13sp"
+            android:visibility="gone" />
 
         <!-- ── ACTIVIDAD RECIENTE ── -->
         <TextView
