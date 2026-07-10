@@ -1,0 +1,18 @@
+﻿flowchart LR
+    UsuarioWeb[Usuario Web] --> WebApp[Next.js Web App]
+    UsuarioMobile[Usuario Mobile] --> AndroidApp[Android App Java]
+
+    WebApp --> FirebaseAuth[Firebase Auth]
+    WebApp --> Firestore[(Cloud Firestore)]
+    WebApp --> Storage[(Firebase Storage)]
+
+    AndroidApp --> FirebaseAuth
+    AndroidApp --> Firestore
+    AndroidApp --> Storage
+    AndroidApp --> SpotifyAPI[Spotify API]
+
+    Firestore --> Users[(users)]
+    Firestore --> Projects[(projects)]
+    Firestore --> Chats[(chats)]
+    Firestore --> UserLikes[(userLikes)]
+    Firestore --> Matches[(matches)]

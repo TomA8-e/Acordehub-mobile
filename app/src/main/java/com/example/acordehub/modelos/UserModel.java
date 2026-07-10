@@ -14,6 +14,14 @@ public class UserModel {
     private String email;
     private String photoUrl;
     private boolean isPremium;
+    private String plan;
+    private String subscriptionStatus;
+    private String subscriptionProvider;
+    private String subscriptionId;
+    private Date subscriptionStartedAt;
+    private Date subscriptionExpiresAt;
+    private boolean autoRenew;
+    private Date updatedAt;
 
     // ── Campos del perfil musical (Fase 2) ───────────────────────────────────
     private String role;           // "Músico", "Productor", "Cantante", etc.
@@ -23,6 +31,8 @@ public class UserModel {
     private String description;    // descripción personal
     private String location;       // ciudad/provincia
     private List<FavoriteArtist> favoriteArtists; // Lista de objetos con nombre e imagen
+    private List<String> producerServices; // Servicios del productor: mezcla, mastering, beats, etc.
+    private List<String> producerCredits;  // Proyectos o artistas con los que trabajo
 
     @ServerTimestamp
     private Date createdAt;
@@ -37,6 +47,13 @@ public class UserModel {
         this.email = email;
         this.photoUrl = "";
         this.isPremium = false;
+        this.plan = "free";
+        this.subscriptionStatus = "inactive";
+        this.subscriptionProvider = "";
+        this.subscriptionId = "";
+        this.subscriptionStartedAt = null;
+        this.subscriptionExpiresAt = null;
+        this.autoRenew = false;
         this.role = "";
         this.genres = new ArrayList<>();
         this.instruments = new ArrayList<>();
@@ -44,6 +61,9 @@ public class UserModel {
         this.description = "";
         this.location = "";
         this.favoriteArtists = new ArrayList<>();
+        this.producerServices = new ArrayList<>();
+        this.producerCredits = new ArrayList<>();
+        this.updatedAt = null;
     }
 
     // ── Getters y Setters ─────────────────────────────────────────────────────
@@ -62,6 +82,32 @@ public class UserModel {
 
     public boolean isPremium() { return isPremium; }
     public void setPremium(boolean premium) { isPremium = premium; }
+
+    public String getPlan() { return plan == null || plan.trim().isEmpty() ? "free" : plan; }
+    public void setPlan(String plan) { this.plan = plan; }
+
+    public String getSubscriptionStatus() {
+        return subscriptionStatus == null || subscriptionStatus.trim().isEmpty() ? "inactive" : subscriptionStatus;
+    }
+    public void setSubscriptionStatus(String subscriptionStatus) { this.subscriptionStatus = subscriptionStatus; }
+
+    public String getSubscriptionProvider() { return subscriptionProvider; }
+    public void setSubscriptionProvider(String subscriptionProvider) { this.subscriptionProvider = subscriptionProvider; }
+
+    public String getSubscriptionId() { return subscriptionId; }
+    public void setSubscriptionId(String subscriptionId) { this.subscriptionId = subscriptionId; }
+
+    public Date getSubscriptionStartedAt() { return subscriptionStartedAt; }
+    public void setSubscriptionStartedAt(Date subscriptionStartedAt) { this.subscriptionStartedAt = subscriptionStartedAt; }
+
+    public Date getSubscriptionExpiresAt() { return subscriptionExpiresAt; }
+    public void setSubscriptionExpiresAt(Date subscriptionExpiresAt) { this.subscriptionExpiresAt = subscriptionExpiresAt; }
+
+    public boolean isAutoRenew() { return autoRenew; }
+    public void setAutoRenew(boolean autoRenew) { this.autoRenew = autoRenew; }
+
+    public Date getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
@@ -83,6 +129,12 @@ public class UserModel {
 
     public List<FavoriteArtist> getFavoriteArtists() { return favoriteArtists; }
     public void setFavoriteArtists(List<FavoriteArtist> favoriteArtists) { this.favoriteArtists = favoriteArtists; }
+
+    public List<String> getProducerServices() { return producerServices; }
+    public void setProducerServices(List<String> producerServices) { this.producerServices = producerServices; }
+
+    public List<String> getProducerCredits() { return producerCredits; }
+    public void setProducerCredits(List<String> producerCredits) { this.producerCredits = producerCredits; }
 
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }

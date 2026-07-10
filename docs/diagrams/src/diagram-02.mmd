@@ -1,0 +1,28 @@
+﻿flowchart TB
+    Layout[RootLayout] --> AuthProvider[AuthProvider]
+    Layout --> Navbar[Navbar]
+    AuthProvider --> UseAuth[useAuth]
+
+    PageHome[/app/page.tsx/] --> HomeDashboard[HomeDashboard]
+    PageSearch[/app/search/page.tsx/] --> SearchPage[SearchPage]
+    PageProjects[/app/projects/page.tsx/] --> ProjectsPage[ProjectsPage]
+    PageProfile[/app/profile/page.tsx/] --> ProfilePage[ProfilePage]
+    PageLogin[/app/login/page.tsx/] --> AuthFormLogin[AuthForm mode login]
+    PageRegister[/app/register/page.tsx/] --> AuthFormRegister[AuthForm mode register]
+
+    HomeDashboard --> UseAuth
+    SearchPage --> UseAuth
+    ProjectsPage --> UseAuth
+    ProfilePage --> UseAuth
+    Navbar --> UseAuth
+    AuthFormLogin --> FirebaseWeb[lib/firebase.ts]
+    AuthFormRegister --> FirebaseWeb
+
+    HomeDashboard --> Firestore[(Firestore)]
+    SearchPage --> Firestore
+    ProjectsPage --> Firestore
+    ProfilePage --> Firestore
+    ProjectsPage --> Storage[(Firebase Storage)]
+    AuthProvider --> Auth[(Firebase Auth)]
+    AuthFormLogin --> Auth
+    AuthFormRegister --> Auth

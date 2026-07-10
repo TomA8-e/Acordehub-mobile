@@ -1,0 +1,86 @@
+﻿classDiagram
+    class UserModel {
+        +string uid
+        +string name
+        +string email
+        +string photoUrl
+        +boolean isPremium
+        +string role
+        +List~String~ genres
+        +List~String~ instruments
+        +string level
+        +string description
+        +string location
+        +List~FavoriteArtist~ favoriteArtists
+        +Date createdAt
+    }
+
+    class FavoriteArtist {
+        +string name
+        +string imageUrl
+    }
+
+    class Project {
+        +string id
+        +string ownerUid
+        +string ownerName
+        +string title
+        +string description
+        +string genre
+        +string imageUri
+        +string demoUri
+        +string status
+        +Date createdAt
+        +isActive()
+        +hasDemo()
+    }
+
+    class ProjectJoinRequest {
+        +string id
+        +string projectId
+        +string projectTitle
+        +string ownerUid
+        +string requesterUid
+        +string requesterName
+        +string requesterEmail
+        +string status
+        +Date createdAt
+        +isPending()
+    }
+
+    class ChatConversation {
+        +string id
+        +List~String~ participantIds
+        +Map~String,String~ participantNames
+        +Map~String,String~ participantEmails
+        +Map~String,String~ participantPhotos
+        +string lastMessage
+        +Date createdAt
+        +Date updatedAt
+        +getOtherParticipantId(currentUid)
+        +getDisplayName(currentUid)
+        +getDisplayPhoto(currentUid)
+    }
+
+    class ChatMessage {
+        +string id
+        +string senderId
+        +string text
+        +Date createdAt
+    }
+
+    class MatchCandidate {
+        -UserModel user
+        -int score
+        -string reason
+        +getUser()
+        +getScore()
+        +getReason()
+        -calculateScore(currentUser, otherUser)
+        -buildReason(currentUser, otherUser)
+    }
+
+    UserModel "1" o-- "*" FavoriteArtist
+    Project "1" o-- "*" ProjectJoinRequest
+    ChatConversation "1" o-- "*" ChatMessage
+    MatchCandidate --> UserModel

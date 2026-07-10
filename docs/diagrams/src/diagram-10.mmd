@@ -1,0 +1,21 @@
+﻿sequenceDiagram
+    actor Usuario
+    participant ChatFragment
+    participant ChatVM as ChatVistaModelo
+    participant ChatRepo as ChatRepository
+    participant Firestore
+    participant ChatDetail as ChatDetailActivity
+
+    Usuario->>ChatFragment: ingresa email o abre conversacion
+    ChatFragment->>ChatVM: iniciarChatConEmail(email)
+    ChatVM->>ChatRepo: startChatWithEmail(email)
+    ChatRepo->>Firestore: query users where email
+    Firestore-->>ChatRepo: UserModel destino
+    ChatRepo->>Firestore: set chats/{uid_uid}
+    ChatRepo-->>ChatVM: chatId, title
+    ChatVM-->>ChatFragment: openedChatLiveData
+    ChatFragment->>ChatDetail: startActivity(chatId)
+    ChatDetail->>ChatVM: escucharMensajes(chatId)
+    ChatVM->>ChatRepo: listenToMessages(chatId)
+    ChatRepo->>Firestore: addSnapshotListener chats/{id}/messages
+    Firestore-->>ChatDetail: mensajes en tiempo real

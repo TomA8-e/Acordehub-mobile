@@ -3,13 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient">
+    android:background="@color/white">
 
-    <!-- Header con botón volver -->
     <RelativeLayout
         android:id="@+id/publishHeader"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="68dp"
         android:paddingHorizontal="16dp">
 
         <ImageButton
@@ -17,249 +16,223 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_centerVertical="true"
-            android:src="@drawable/ic_back"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@color/black_primary"/>
+            android:src="@drawable/ic_back"
+            app:tint="@color/black_primary" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="PUBLICA"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/black_primary"
-            android:letterSpacing="0.1"/>
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/btnBack"
+            android:layout_marginStart="4dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Crear proyecto"
+                android:textColor="@color/black_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Publica una idea con una demo escuchable"
+                android:textColor="@color/black_soft"
+                android:textSize="12sp" />
+        </LinearLayout>
     </RelativeLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@id/bottomPublishBar"
         android:layout_below="@id/publishHeader"
-        android:layout_above="@id/btnPublicar"
         android:fillViewport="true">
 
-        <com.google.android.material.card.MaterialCardView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="24dp"
-            app:cardCornerRadius="32dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="#FFF8E1"
-            app:strokeWidth="0dp">
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="24dp">
 
-            <LinearLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="24dp">
+                android:hint="Titulo"
+                app:startIconDrawable="@drawable/ic_add_project">
 
-                <!-- Título -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Titulo del proyecto:"
-                    android:textSize="14sp"
-                    android:textColor="@color/black_primary"
-                    android:layout_marginBottom="8dp"/>
-
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etProjectTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@android:color/transparent"
-                    android:hint="..........................................................................."
-                    android:textColorHint="@color/black_soft"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="24dp"
-                    android:inputType="text"/>
+                    android:inputType="textCapSentences"
+                    android:maxLength="120"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Descripción -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Descripcion breve del proyecto:"
-                    android:textSize="14sp"
-                    android:textColor="@color/black_primary"
-                    android:layout_marginBottom="12dp"/>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:hint="Genero"
+                app:startIconDrawable="@drawable/ic_music_note">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="match_parent"
-                    android:layout_height="120dp"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FAFAFA"
-                    app:strokeColor="#EEEEEE"
-                    app:strokeWidth="1dp"
-                    android:layout_marginBottom="24dp">
-
-                    <EditText
-                        android:id="@+id/etProjectDescription"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@android:color/transparent"
-                        android:padding="16dp"
-                        android:hint="Escribí algo"
-                        android:gravity="top"
-                        android:textSize="13sp"
-                        android:textColor="@color/black_primary"/>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Género -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Genero:"
-                    android:textSize="14sp"
-                    android:textColor="@color/black_primary"
-                    android:layout_marginBottom="8dp"/>
-
-                <EditText
+                <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etProjectGenre"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@android:color/transparent"
-                    android:hint="..........................................................................."
-                    android:textColorHint="@color/black_soft"
-                    android:textSize="14sp"
-                    android:layout_marginBottom="24dp"
-                    android:inputType="text"/>
+                    android:inputType="textCapWords"
+                    android:maxLength="80"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Roles -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Que roles buscas:"
-                    android:textSize="14sp"
-                    android:textColor="@color/black_primary"
-                    android:layout_marginBottom="16dp"/>
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:hint="Descripcion breve">
 
-                <!-- Ubicación -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Ubicacion/modalidad: Presencial - Remoto"
-                    android:textSize="14sp"
-                    android:textColor="@color/black_primary"
-                    android:layout_marginBottom="24dp"/>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etProjectDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="128dp"
+                    android:gravity="top"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:maxLength="2000" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Subir Demo -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Subi una demo:"
-                    android:textSize="14sp"
-                    android:textColor="@color/black_primary"
-                    android:layout_marginBottom="12dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Demo del proyecto"
+                android:textColor="@color/black_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btnUploadDemo"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnUploadDemo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="#FFF8E1"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/orange_light"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FAFAFA"
-                    app:strokeColor="#EEEEEE"
-                    app:strokeWidth="1dp"
-                    android:layout_marginBottom="24dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="20dp"
-                        android:gravity="center">
-
-                        <ImageView
-                            android:layout_width="60dp"
-                            android:layout_height="60dp"
-                            android:src="@drawable/ic_audio_file"
-                            app:tint="@color/black_primary"/>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Arrastra un archivo: wav,mp3"
-                            android:textSize="12sp"
-                            android:fontFamily="sans-serif-light"
-                            android:layout_marginTop="8dp"
-                            android:textColor="@color/black_soft"/>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="12dp"
-                            android:gravity="center_vertical">
-                            <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:src="@drawable/ic_link"
-                                app:tint="@color/black_soft"/>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Link"
-                                android:textSize="12sp"
-                                android:layout_marginStart="4dp"
-                                android:textColor="@color/black_soft"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Subir Imagen -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Subi una imagen."
-                    android:textSize="14sp"
-                    android:gravity="center"
-                    android:layout_gravity="center_horizontal"
-                    android:textColor="@color/black_primary"
-                    android:layout_marginBottom="12dp"/>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/btnUploadImage"
-                    android:layout_width="140dp"
-                    android:layout_height="100dp"
-                    android:layout_gravity="center_horizontal"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="0dp"
-                    app:cardBackgroundColor="#FAFAFA"
-                    app:strokeColor="#EEEEEE"
-                    app:strokeWidth="1dp"
-                    android:layout_marginBottom="16dp"
-                    android:clickable="true"
-                    android:focusable="true">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
 
                     <ImageView
-                        android:id="@+id/ivProjectPreview"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerInside"
-                        android:padding="24dp"
-                        android:src="@drawable/ic_image_placeholder"
-                        app:tint="@color/black_soft"/>
-                </com.google.android.material.card.MaterialCardView>
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_upload"
+                        app:tint="@color/orange_dark" />
 
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvDemoUploadHint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Subir demo MP3 o WAV"
+                            android:textColor="@color/black_primary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvDemoFileName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textColor="@color/black_soft"
+                            android:textSize="12sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Portada"
+                android:textColor="@color/black_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnUploadImage"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="#F7F7F7"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#EEEEEE"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:id="@+id/ivProjectPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="46dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_image_placeholder"
+                    app:tint="@color/gray_hint" />
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
     </ScrollView>
 
-    <!-- Botón Publicar Fijo -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnPublicar"
+    <LinearLayout
+        android:id="@+id/bottomPublishBar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="88dp"
         android:layout_alignParentBottom="true"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginBottom="16dp"
-        android:text="Publicar"
-        android:textSize="16sp"
-        android:textColor="@color/white"
-        app:backgroundTint="@color/black_primary"
-        app:cornerRadius="14dp"/>
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="16dp">
+
+        <ProgressBar
+            android:id="@+id/progressPublish"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="12dp"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPublicar"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="Publicar"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            app:backgroundTint="@color/black_primary"
+            app:cornerRadius="14dp" />
+    </LinearLayout>
 
 </RelativeLayout>

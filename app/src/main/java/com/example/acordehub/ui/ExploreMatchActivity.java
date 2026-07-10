@@ -59,8 +59,17 @@ public class ExploreMatchActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        adapter = new MatchCandidateAdapter(this::likeCandidate);
+        adapter = new MatchCandidateAdapter(this::openPublicProfile);
         binding.rvCandidates.setAdapter(adapter);
+    }
+
+    private void openPublicProfile(MatchCandidate candidate) {
+        UserModel user = candidate.getUser();
+        if (user == null || isBlank(user.getUid())) return;
+        Intent intent = new Intent(this, PublicProfileActivity.class);
+        intent.putExtra(PublicProfileActivity.EXTRA_USER_UID, user.getUid());
+        intent.putExtra(PublicProfileActivity.EXTRA_MATCH_SCORE, candidate.getScore());
+        startActivity(intent);
     }
 
     private void setupSearch() {
@@ -270,7 +279,7 @@ public class ExploreMatchActivity extends AppCompatActivity {
         return value != null && value.toLowerCase(Locale.ROOT).contains(query);
     }
 
-    private void likeCandidate(MatchCandidate candidate) {
+    void likeCandidate(MatchCandidate candidate) {
         UserModel otherUser = candidate.getUser();
         String currentUid = getCurrentUid();
         if (currentUid == null || otherUser.getUid() == null || actionLoadingUid != null) return;

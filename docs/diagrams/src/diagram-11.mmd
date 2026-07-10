@@ -1,0 +1,21 @@
+﻿sequenceDiagram
+    actor Usuario
+    participant ExploreMatchActivity
+    participant Firestore
+    participant MatchCandidate
+    participant ChatDetailActivity
+
+    Usuario->>ExploreMatchActivity: abre explorar
+    ExploreMatchActivity->>Firestore: get users/{uid}
+    Firestore-->>ExploreMatchActivity: usuario actual
+    ExploreMatchActivity->>Firestore: get users
+    Firestore-->>ExploreMatchActivity: candidatos
+    ExploreMatchActivity->>MatchCandidate: calcular score y razon
+    MatchCandidate-->>ExploreMatchActivity: candidatos ordenados
+    Usuario->>ExploreMatchActivity: like a usuario
+    ExploreMatchActivity->>Firestore: set userLikes/{uid}/likedUsers/{otherUid}
+    ExploreMatchActivity->>Firestore: consulta like reciproco
+    alt hay match
+        ExploreMatchActivity->>Firestore: set matches/{matchId}
+        ExploreMatchActivity->>ChatDetailActivity: abrir chat
+    end

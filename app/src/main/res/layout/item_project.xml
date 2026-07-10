@@ -3,33 +3,58 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="0dp"
-    app:strokeColor="#EEEEEE"
+    android:layout_marginBottom="16dp"
+    app:cardBackgroundColor="@color/surface_card"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/outline_soft"
     app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="12dp">
+        android:orientation="vertical">
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivProjectCover"
-            android:layout_width="84dp"
-            android:layout_height="84dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_image_placeholder"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="172dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivProjectCover"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_image_placeholder" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_project_cover_tint" />
+
+            <TextView
+                android:id="@+id/tvProjectGenre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="12dp"
+                android:background="@drawable/bg_project_genre_badge"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:paddingHorizontal="13dp"
+                android:paddingVertical="7dp"
+                android:text="Genero"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </FrameLayout>
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="18dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -46,14 +71,14 @@
                     android:maxLines="1"
                     android:text="Proyecto"
                     android:textColor="@color/black_primary"
-                    android:textSize="16sp"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvProjectDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="12dp"
                     android:text="Nuevo"
                     android:textColor="@color/gray_hint"
                     android:textSize="11sp" />
@@ -63,7 +88,7 @@
                 android:id="@+id/tvProjectOwner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="3dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text="Publicado por musico"
@@ -74,9 +99,10 @@
                 android:id="@+id/tvProjectDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="10dp"
                 android:ellipsize="end"
-                android:maxLines="2"
+                android:lineSpacingExtra="2dp"
+                android:maxLines="3"
                 android:text="Descripcion del proyecto"
                 android:textColor="@color/black_soft"
                 android:textSize="13sp" />
@@ -84,36 +110,44 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/tvProjectGenre"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    android:text="Genero"
-                    android:textColor="@color/orange_dark"
-                    android:textSize="11sp"
-                    android:textStyle="bold" />
-
-                <TextView
                     android:id="@+id/tvProjectDemo"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:drawablePadding="4dp"
+                    android:layout_weight="1"
+                    android:drawablePadding="6dp"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="Demo disponible"
                     android:textColor="@color/gray_hint"
-                    android:textSize="11sp"
+                    android:textSize="12sp"
                     app:drawableStartCompat="@drawable/ic_audio_file"
                     app:drawableTint="@color/gray_hint" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnProjectDemoPlay"
+                    style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="12dp"
+                    android:insetLeft="0dp"
+                    android:insetTop="0dp"
+                    android:insetRight="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:visibility="gone"
+                    app:backgroundTint="@color/orange_light"
+                    app:cornerRadius="14dp"
+                    app:icon="@drawable/ic_play"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:iconSize="21dp"
+                    app:iconTint="@color/orange_dark" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

@@ -1,0 +1,19 @@
+﻿sequenceDiagram
+    actor Usuario
+    participant ProjectsPage
+    participant Firestore
+    participant Storage as Firebase Storage
+
+    Usuario->>ProjectsPage: carga titulo, descripcion, genero y demo
+    ProjectsPage->>Firestore: getDoc users/{uid}
+    Firestore-->>ProjectsPage: perfil del creador
+    ProjectsPage->>Firestore: addDoc projects
+    Firestore-->>ProjectsPage: projectId
+    opt portada
+        ProjectsPage->>Storage: uploadBytes cover
+        Storage-->>ProjectsPage: imageUri
+    end
+    ProjectsPage->>Storage: uploadBytes demo
+    Storage-->>ProjectsPage: demoUri
+    ProjectsPage->>Firestore: addDoc projects/{id}/activity
+    ProjectsPage->>Firestore: updateDoc projects/{id}

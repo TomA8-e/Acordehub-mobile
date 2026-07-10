@@ -17,8 +17,13 @@ import com.bumptech.glide.Glide;
 import com.example.acordehub.R;
 import com.example.acordehub.auth.AuthVistaModelo;
 import com.example.acordehub.databinding.FragmentHomeBinding;
+import com.example.acordehub.modelos.Project;
 import com.example.acordehub.perfil.PerfilVistaModelo;
 import com.example.acordehub.proyectos.ProjectVistaModelo;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HomeFragment extends Fragment {
 
@@ -30,6 +35,8 @@ public class HomeFragment extends Fragment {
     private SelectedArtistAdapter recommendationsAdapter;
     private SelectedArtistAdapter discoverAdapter;
     private ProjectAdapter projectAdapter;
+    private final List<Project> allProjects = new ArrayList<>();
+    private int selectedProjectFilterId = R.id.chipAllProjects;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -62,13 +69,17 @@ public class HomeFragment extends Fragment {
         discoverAdapter = new SelectedArtistAdapter(null);
         binding.rvDiscoverMusicians.setAdapter(discoverAdapter);
 
-        projectAdapter = new ProjectAdapter();
+        projectAdapter = new ProjectAdapter(project -> {
+            Intent intent = new Intent(requireContext(), ProjectDetailActivity.class);
+            intent.putExtra(ProjectDetailActivity.EXTRA_PROJECT_ID, project.getId());
+            startActivity(intent);
+        });
         binding.rvProjectFeed.setAdapter(projectAdapter);
     }
 
     private void setupClickListeners() {
         binding.btnNotifications.setOnClickListener(v ->
-                Toast.makeText(getContext(), "Notificaciones (Proximamente)", Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(requireContext(), NotificationsActivity.class)));
 
         binding.btnMessages.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigate(R.id.chatFragment));
@@ -76,8 +87,21 @@ public class HomeFragment extends Fragment {
         binding.btnQuickActionCreate.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), PublishProjectActivity.class)));
 
+        binding.btnCreateProjectFromFeed.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), PublishProjectActivity.class)));
+
+        binding.btnCreateProjectEmpty.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), PublishProjectActivity.class)));
+
         binding.btnQuickActionDiscover.setOnClickListener(v ->
                 startActivity(new Intent(requireContext(), ExploreMatchActivity.class)));
+
+        binding.chipGroupProjects.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            selectedProjectFilterId = checkedIds.isEmpty()
+                    ? R.id.chipAllProjects
+                    : checkedIds.get(0);
+            applyProjectFilter();
+        });
     }
 
     private void observeViewModel() {
@@ -100,10 +124,9 @@ public class HomeFragment extends Fragment {
         });
 
         projectVistaModelo.getProjectsLiveData().observe(getViewLifecycleOwner(), projects -> {
-            boolean hasProjects = projects != null && !projects.isEmpty();
-            projectAdapter.setProjects(projects);
-            binding.rvProjectFeed.setVisibility(hasProjects ? View.VISIBLE : View.GONE);
-            binding.tvEmptyProjects.setVisibility(hasProjects ? View.GONE : View.VISIBLE);
+            allProjects.clear();
+            if (projects != null) allProjects.addAll(projects);
+            applyProjectFilter();
         });
 
         projectVistaModelo.getActiveProjectsCountLiveData().observe(getViewLifecycleOwner(), count -> {
@@ -122,9 +145,54 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    private void applyProjectFilter() {
+        List<Project> filteredProjects = new ArrayList<>();
+        String currentUid = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "";
+
+        for (Project project : allProjects) {
+            if (selectedProjectFilterId == R.id.chipProjectsWithDemo && !project.hasDemo()) {
+                continue;
+            }
+            if (selectedProjectFilterId == R.id.chipMyProjects
+                    && (project.getOwnerUid() == null || !project.getOwnerUid().equals(currentUid))) {
+                continue;
+            }
+            filteredProjects.add(project);
+        }
+
+        boolean hasProjects = !filteredProjects.isEmpty();
+        projectAdapter.setProjects(filteredProjects);
+        binding.rvProjectFeed.setVisibility(hasProjects ? View.VISIBLE : View.GONE);
+        binding.containerEmptyProjects.setVisibility(hasProjects ? View.GONE : View.VISIBLE);
+        updateProjectSectionCopy(filteredProjects.size());
+    }
+
+    private void updateProjectSectionCopy(int visibleCount) {
+        if (selectedProjectFilterId == R.id.chipProjectsWithDemo) {
+            binding.tvProjectFeedMeta.setText(visibleCount + " proyectos con demo para escuchar");
+            binding.tvEmptyProjects.setText("No hay proyectos con demo todavia");
+            binding.tvEmptyProjectsHint.setText("Publica una demo o vuelve a revisar cuando haya nuevas ideas.");
+            return;
+        }
+
+        if (selectedProjectFilterId == R.id.chipMyProjects) {
+            binding.tvProjectFeedMeta.setText(visibleCount + " proyectos tuyos publicados");
+            binding.tvEmptyProjects.setText("Todavia no publicaste proyectos");
+            binding.tvEmptyProjectsHint.setText("Crea una idea, subi una demo y dejala lista para colaborar.");
+            return;
+        }
+
+        binding.tvProjectFeedMeta.setText(allProjects.size() + " ideas recientes con demos para escuchar");
+        binding.tvEmptyProjects.setText("Todavia no hay proyectos publicados");
+        binding.tvEmptyProjectsHint.setText("Cuando alguien publique una idea con demo, va a aparecer aca.");
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (projectAdapter != null) projectAdapter.release();
         binding = null;
     }
 }

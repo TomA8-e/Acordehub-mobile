@@ -42,6 +42,7 @@ public class PerfilFragment extends Fragment {
     private SelectedArtistAdapter artistsAdapter;
     private UserModel currentUser;
     private final SimpleDateFormat memberSinceFormat = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
+    private static final String ROLE_PRODUCER = "Productor";
 
     private static final String[] ROLES = {"Musico", "Productor", "Cantante", "Guitarrista", "Bajista", "Baterista", "Pianista", "DJ"};
     private static final String[] GENEROS = {"Rock", "Pop", "Metal", "R&B", "Rap", "Jazz", "Cumbia", "Electronica", "Folklore", "Clasica"};
@@ -143,7 +144,12 @@ public class PerfilFragment extends Fragment {
         binding.btnCambiarFoto.setOnClickListener(v -> openGallery());
         binding.btnGuardar.setOnClickListener(v -> saveProfile());
         binding.btnVincularSpotify.setOnClickListener(v -> openArtistSearch());
+        binding.cardPremium.setOnClickListener(v ->
+                startActivity(new Intent(requireContext(), PremiumActivity.class)));
         binding.btnLogout.setOnClickListener(v -> logout());
+
+        binding.chipGroupRol.setOnCheckedStateChangeListener((group, checkedIds) ->
+                updateEditModeForRole(getSelectedChip(binding.chipGroupRol)));
     }
 
     private void observeViewModel() {
@@ -183,12 +189,15 @@ public class PerfilFragment extends Fragment {
         binding.etNombre.setText(user.getName());
         binding.etDescripcion.setText(user.getDescription());
         binding.etUbicacion.setText(user.getLocation());
+        binding.etProducerServices.setText(joinValues(user.getProducerServices()));
+        binding.etProducerCredits.setText(joinValues(user.getProducerCredits()));
         currentPhotoUrl = user.getPhotoUrl() != null ? user.getPhotoUrl() : "";
 
         bindPhotos(currentPhotoUrl);
         clearEditableChips();
         markChip(binding.chipGroupRol, user.getRole());
         markChip(binding.chipGroupNivel, user.getLevel());
+        updateEditModeForRole(user.getRole());
 
         if (user.getGenres() != null) {
             for (String genre : user.getGenres()) markChip(binding.chipGroupGeneros, genre);
@@ -205,19 +214,37 @@ public class PerfilFragment extends Fragment {
     }
 
     private void populateProfileView(UserModel user) {
+        boolean isProducer = isProducerRole(user.getRole());
         binding.tvProfileName.setText(valueOrFallback(user.getName(), "Usuario"));
-        binding.tvProfileRole.setText(valueOrFallback(user.getRole(), "Rol musical sin definir"));
+        binding.tvProfileRole.setText(isProducer
+                ? "Productor musical"
+                : valueOrFallback(user.getRole(), "Rol musical sin definir"));
         binding.tvProfileLocation.setText(valueOrFallback(user.getLocation(), "Ubicacion no definida"));
-        binding.tvAboutDescription.setText(valueOrFallback(user.getDescription(), "Todavia no agregaste una descripcion."));
+        binding.tvAboutDescription.setText(valueOrFallback(user.getDescription(),
+                isProducer ? "Todavia no agregaste una bio de productor." : "Todavia no agregaste una descripcion."));
         binding.tvProfileLevel.setText(valueOrFallback(user.getLevel(), "Sin definir"));
         binding.tvProfileEmail.setText(valueOrFallback(user.getEmail(), "Sin email"));
 
-        bindDisplayChips(binding.chipGroupProfileGenres, user.getGenres(), "Sin generos definidos");
-        bindDisplayChips(binding.chipGroupProfileInstruments, user.getInstruments(), "Sin instrumentos definidos");
-        bindArtistChips(user.getFavoriteArtists());
+        binding.cardProducerPortfolio.setVisibility(isProducer ? View.VISIBLE : View.GONE);
+        binding.cardProfileInstruments.setVisibility(isProducer ? View.GONE : View.VISIBLE);
+        binding.cardProfileLevel.setVisibility(isProducer ? View.GONE : View.VISIBLE);
+        binding.cardProfileArtists.setVisibility(isProducer ? View.GONE : View.VISIBLE);
+
+        bindDisplayChips(binding.chipGroupProfileGenres, user.getGenres(),
+                isProducer ? "Sin generos de referencia" : "Sin generos definidos");
+        if (isProducer) {
+            bindDisplayChips(binding.chipGroupProducerServices, user.getProducerServices(), "Sin servicios cargados");
+            bindDisplayChips(binding.chipGroupProducerCredits, user.getProducerCredits(), "Sin creditos cargados");
+        } else {
+            bindDisplayChips(binding.chipGroupProfileInstruments, user.getInstruments(), "Sin instrumentos definidos");
+            bindArtistChips(user.getFavoriteArtists());
+        }
 
         binding.tvStatGenres.setText(String.valueOf(countValues(user.getGenres())));
-        binding.tvStatArtists.setText(String.valueOf(user.getFavoriteArtists() != null ? user.getFavoriteArtists().size() : 0));
+        binding.tvStatArtistsLabel.setText(isProducer ? "Creditos" : "Artistas favoritos");
+        binding.tvStatArtists.setText(String.valueOf(isProducer
+                ? countValues(user.getProducerCredits())
+                : user.getFavoriteArtists() != null ? user.getFavoriteArtists().size() : 0));
         binding.tvMemberSince.setText(user.getCreatedAt() != null ? memberSinceFormat.format(user.getCreatedAt()) : "Nuevo");
     }
 
@@ -295,10 +322,19 @@ public class PerfilFragment extends Fragment {
         String role = getSelectedChip(binding.chipGroupRol);
         String level = getSelectedChip(binding.chipGroupNivel);
         List<String> genres = getSelectedChips(binding.chipGroupGeneros);
-        List<String> instruments = getSelectedChips(binding.chipGroupInstrumentos);
+        boolean isProducer = isProducerRole(role);
+        List<String> instruments = isProducer ? new ArrayList<>() : getSelectedChips(binding.chipGroupInstrumentos);
+        List<FavoriteArtist> favoriteArtists = isProducer ? new ArrayList<>() : selectedArtists;
+        List<String> producerServices = isProducer
+                ? splitValues(binding.etProducerServices.getText() != null ? binding.etProducerServices.getText().toString() : "")
+                : new ArrayList<>();
+        List<String> producerCredits = isProducer
+                ? splitValues(binding.etProducerCredits.getText() != null ? binding.etProducerCredits.getText().toString() : "")
+                : new ArrayList<>();
 
         perfilVistaModelo.guardarPerfil(name, role, genres, instruments,
-                level, description, location, currentPhotoUrl, selectedArtists);
+                isProducer ? "" : level, description, location, currentPhotoUrl,
+                favoriteArtists, producerServices, producerCredits);
     }
 
     private void logout() {
@@ -322,6 +358,44 @@ public class PerfilFragment extends Fragment {
     private void setEditMode(boolean editing) {
         binding.profileViewContainer.setVisibility(editing ? View.GONE : View.VISIBLE);
         binding.editProfileContainer.setVisibility(editing ? View.VISIBLE : View.GONE);
+        if (editing) updateEditModeForRole(getSelectedChip(binding.chipGroupRol));
+    }
+
+    private void updateEditModeForRole(String role) {
+        boolean isProducer = isProducerRole(role);
+        binding.producerPortfolioEditContainer.setVisibility(isProducer ? View.VISIBLE : View.GONE);
+        binding.tvLabelInstrumentos.setVisibility(isProducer ? View.GONE : View.VISIBLE);
+        binding.chipGroupInstrumentos.setVisibility(isProducer ? View.GONE : View.VISIBLE);
+        binding.tvLabelNivel.setVisibility(isProducer ? View.GONE : View.VISIBLE);
+        binding.chipGroupNivel.setVisibility(isProducer ? View.GONE : View.VISIBLE);
+        binding.favoriteArtistsEditContainer.setVisibility(isProducer ? View.GONE : View.VISIBLE);
+    }
+
+    private boolean isProducerRole(String role) {
+        return role != null && role.trim().equalsIgnoreCase(ROLE_PRODUCER);
+    }
+
+    private List<String> splitValues(String rawValue) {
+        List<String> values = new ArrayList<>();
+        if (rawValue == null || rawValue.trim().isEmpty()) return values;
+
+        String[] parts = rawValue.split(",");
+        for (String part : parts) {
+            String value = part.trim();
+            if (!value.isEmpty() && !values.contains(value)) values.add(value);
+        }
+        return values;
+    }
+
+    private String joinValues(List<String> values) {
+        if (values == null || values.isEmpty()) return "";
+        StringBuilder builder = new StringBuilder();
+        for (String value : values) {
+            if (value == null || value.trim().isEmpty()) continue;
+            if (builder.length() > 0) builder.append(", ");
+            builder.append(value.trim());
+        }
+        return builder.toString();
     }
 
     private void clearEditableChips() {

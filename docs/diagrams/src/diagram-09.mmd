@@ -1,0 +1,23 @@
+﻿stateDiagram-v2
+    [*] --> LoginActivity
+    LoginActivity --> RegisterActivity: crear cuenta
+    RegisterActivity --> MainActivity: registro correcto
+    LoginActivity --> MainActivity: login correcto
+
+    MainActivity --> HomeFragment: startDestination
+    MainActivity --> PerfilFragment: bottom nav
+    MainActivity --> ChatFragment: bottom nav
+
+    HomeFragment --> NotificationsActivity: notificaciones
+    HomeFragment --> ChatFragment: mensajes
+    HomeFragment --> PublishProjectActivity: crear proyecto
+    HomeFragment --> ExploreMatchActivity: explorar
+    HomeFragment --> ProjectDetailActivity: ver proyecto
+
+    PerfilFragment --> SpotifyArtistSearchActivity: vincular artistas
+    PerfilFragment --> PremiumActivity: premium
+    PerfilFragment --> LoginActivity: logout
+
+    ChatFragment --> ChatDetailActivity: abrir conversacion
+    NotificationsActivity --> ChatDetailActivity: abrir chat
+    ExploreMatchActivity --> ChatDetailActivity: match/chat

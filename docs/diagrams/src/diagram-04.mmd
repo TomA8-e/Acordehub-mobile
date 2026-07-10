@@ -1,0 +1,15 @@
+﻿sequenceDiagram
+    actor Usuario
+    participant AuthForm
+    participant FirebaseAuth as Firebase Auth
+    participant Firestore
+    participant Router as Next Router
+
+    Usuario->>AuthForm: completa formulario
+    AuthForm->>FirebaseAuth: signIn/createUser/signInWithPopup
+    FirebaseAuth-->>AuthForm: credencial de usuario
+    AuthForm->>Firestore: getDoc users/{uid}
+    alt Perfil no existe
+        AuthForm->>Firestore: setDoc users/{uid} con defaultProfile()
+    end
+    AuthForm->>Router: push("/")

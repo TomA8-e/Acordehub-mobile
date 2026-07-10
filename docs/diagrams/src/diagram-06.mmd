@@ -1,0 +1,36 @@
+﻿flowchart TB
+    LoginActivity[LoginActivity] --> AuthVM[AuthVistaModelo]
+    RegisterActivity[RegisterActivity] --> AuthVM
+    MainActivity[MainActivity] --> NavGraph[Navigation Component]
+    NavGraph --> HomeFragment[HomeFragment]
+    NavGraph --> ChatFragment[ChatFragment]
+    NavGraph --> PerfilFragment[PerfilFragment]
+
+    HomeFragment --> PerfilVM[PerfilVistaModelo]
+    HomeFragment --> ProjectVM[ProjectVistaModelo]
+    PerfilFragment --> PerfilVM
+    PerfilFragment --> AuthVM
+    ChatFragment --> ChatVM[ChatVistaModelo]
+    ChatDetailActivity[ChatDetailActivity] --> ChatVM
+
+    PublishProjectActivity[PublishProjectActivity] --> Firestore[(Firestore)]
+    PublishProjectActivity --> Storage[(Firebase Storage)]
+    ProjectDetailActivity[ProjectDetailActivity] --> Firestore
+    ExploreMatchActivity[ExploreMatchActivity] --> Firestore
+    SpotifyArtistSearchActivity[SpotifyArtistSearchActivity] --> SpotifyService[SpotifyService Retrofit]
+
+    AuthVM --> AuthRepo[AuthRepository]
+    PerfilVM --> PerfilRepo[PerfilRepository]
+    ProjectVM --> ProjectRepo[ProjectRepository]
+    ChatVM --> ChatRepo[ChatRepository]
+
+    AuthRepo --> FirebaseAuth[Firebase Auth]
+    AuthRepo --> Firestore
+    PerfilRepo --> FirebaseAuth
+    PerfilRepo --> Firestore
+    PerfilRepo --> Storage
+    ProjectRepo --> FirebaseAuth
+    ProjectRepo --> Firestore
+    ChatRepo --> FirebaseAuth
+    ChatRepo --> Firestore
+    SpotifyService --> SpotifyAPI[Spotify API]

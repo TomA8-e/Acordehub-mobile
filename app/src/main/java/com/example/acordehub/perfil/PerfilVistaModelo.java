@@ -54,7 +54,9 @@ public class PerfilVistaModelo extends ViewModel {
     public void guardarPerfil(String name, String role, List<String> genres,
                               List<String> instruments, String level,
                               String description, String location, String photoUrl,
-                              List<FavoriteArtist> favoriteArtists) {
+                              List<FavoriteArtist> favoriteArtists,
+                              List<String> producerServices,
+                              List<String> producerCredits) {
         loadingLiveData.setValue(true);
 
         UserModel user = new UserModel();
@@ -67,6 +69,8 @@ public class PerfilVistaModelo extends ViewModel {
         user.setLocation(location);
         user.setPhotoUrl(photoUrl != null ? photoUrl : "");
         user.setFavoriteArtists(favoriteArtists);
+        user.setProducerServices(producerServices);
+        user.setProducerCredits(producerCredits);
 
         repository.guardarPerfil(user, new PerfilRepository.SimpleCallback() {
             @Override

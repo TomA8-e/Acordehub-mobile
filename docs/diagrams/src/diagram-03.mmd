@@ -1,0 +1,92 @@
+﻿classDiagram
+    class AuthProvider {
+        -User user
+        -boolean loading
+        +useAuth() AuthContextValue
+    }
+
+    class AuthForm {
+        -mode login|register
+        -formData
+        -error string
+        -loading boolean
+        +handleSubmit(event)
+        +handleGoogle()
+        -saveInitialUser(uid, email, name)
+    }
+
+    class HomeDashboard {
+        -UserProfile profile
+        -Project[] projects
+        -UserProfile[] musicians
+        -number activeProjectsCount
+        +loadRealtimeDashboard()
+    }
+
+    class ProjectsPage {
+        -Project[] projects
+        -boolean showForm
+        -File cover
+        -File demo
+        +publishProject(event)
+        -uploadProjectFile(uid, projectId, kind, file)
+    }
+
+    class ProfilePage {
+        -UserProfile profile
+        -UserProfile draft
+        -boolean isEditing
+        +save()
+        +cancel()
+        +toggleArrayValue(field, value)
+    }
+
+    class SearchPage {
+        -string queryText
+        -string activeChip
+        -UserProfile[] musicians
+        +filteredMusicians()
+    }
+
+    class UserProfile {
+        +string uid
+        +string name
+        +string email
+        +string photoUrl
+        +boolean isPremium
+        +string role
+        +string[] genres
+        +string[] instruments
+        +string level
+        +string description
+        +string location
+        +FavoriteArtist[] favoriteArtists
+        +Timestamp createdAt
+    }
+
+    class FavoriteArtist {
+        +string id
+        +string name
+        +string imageUrl
+    }
+
+    class Project {
+        +string id
+        +string ownerUid
+        +string ownerName
+        +string title
+        +string description
+        +string genre
+        +string imageUri
+        +string demoUri
+        +string status
+        +Timestamp createdAt
+    }
+
+    AuthProvider --> AuthForm : provee estado de sesion
+    HomeDashboard --> UserProfile
+    HomeDashboard --> Project
+    ProjectsPage --> Project
+    ProfilePage --> UserProfile
+    SearchPage --> UserProfile
+    UserProfile "1" o-- "*" FavoriteArtist

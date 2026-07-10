@@ -1,0 +1,62 @@
+﻿erDiagram
+    users ||--o{ projects : "ownerUid"
+    users ||--o{ chats : "participantIds"
+    users ||--o{ userLikes : "likes"
+    projects ||--o{ joinRequests : "solicitudes"
+    projects ||--o{ activity : "eventos"
+    chats ||--o{ messages : "mensajes"
+
+    users {
+        string uid
+        string name
+        string email
+        string photoUrl
+        boolean isPremium
+        string role
+        array genres
+        array instruments
+        string level
+        string description
+        string location
+        array favoriteArtists
+        timestamp createdAt
+    }
+
+    projects {
+        string ownerUid
+        string ownerName
+        string title
+        string description
+        string genre
+        string imageUri
+        string demoUri
+        string status
+        timestamp createdAt
+    }
+
+    chats {
+        array participantIds
+        map participantNames
+        map participantEmails
+        map participantPhotos
+        string lastMessage
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    messages {
+        string senderId
+        string text
+        timestamp createdAt
+    }
+
+    joinRequests {
+        string projectId
+        string projectTitle
+        string ownerUid
+        string requesterUid
+        string requesterName
+        string requesterEmail
+        string status
+        timestamp createdAt
+    }

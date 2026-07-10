@@ -24,6 +24,14 @@ service cloud.firestore {
       allow update, delete: if signedIn() && request.auth.uid == userId;
     }
 
+    match /producerProfiles/{userId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.uid == userId;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
     match /chats/{chatId} {
       allow read: if isChatParticipant();
       allow create: if willBeChatParticipant()
@@ -52,6 +60,10 @@ service cloud.firestore {
     }
 
     match /projects/{projectId} {
+      function parentProject() {
+        return get(/databases/$(database)/documents/projects/$(projectId));
+      }
+
       allow read: if signedIn();
       allow create: if signedIn()
         && request.resource.data.ownerUid == request.auth.uid
@@ -69,6 +81,25 @@ service cloud.firestore {
         && resource.data.ownerUid == request.auth.uid
         && request.resource.data.ownerUid == resource.data.ownerUid;
       allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+
+      match /joinRequests/{requesterUid} {
+        allow read: if signedIn()
+          && (request.auth.uid == requesterUid
+            || resource.data.ownerUid == request.auth.uid
+            || parentProject().data.ownerUid == request.auth.uid);
+        allow create: if signedIn()
+          && request.auth.uid == requesterUid
+          && parentProject().data.ownerUid != request.auth.uid
+          && request.resource.data.projectId == projectId
+          && request.resource.data.ownerUid == parentProject().data.ownerUid
+          && request.resource.data.requesterUid == request.auth.uid
+          && request.resource.data.status == "pending";
+        allow update: if signedIn()
+          && resource.data.ownerUid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "respondedAt"])
+          && request.resource.data.status in ["accepted", "rejected"];
+        allow delete: if false;
+      }
     }
 
     match /userLikes/{userId} {
@@ -102,6 +133,22 @@ service cloud.firestore {
       allow create: if willBeMatchParticipant()
         && request.resource.data.participantIds.size() == 2;
       allow update: if isMatchParticipant() && willBeMatchParticipant();
+      allow delete: if false;
+    }
+
+    match /connectionRequests/{requestId} {
+      allow read: if signedIn()
+        && (resource.data.requesterUid == request.auth.uid
+          || resource.data.targetUid == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.requesterUid == request.auth.uid
+        && request.resource.data.targetUid is string
+        && request.resource.data.targetUid != request.auth.uid
+        && request.resource.data.status == "pending";
+      allow update: if signedIn()
+        && resource.data.targetUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status", "updatedAt"])
+        && request.resource.data.status in ["accepted", "rejected"];
       allow delete: if false;
     }
   }

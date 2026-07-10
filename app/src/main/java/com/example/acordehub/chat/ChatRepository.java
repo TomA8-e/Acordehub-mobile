@@ -124,6 +124,37 @@ public class ChatRepository {
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
+    public void startChatWithUid(String otherUid, StartChatCallback callback) {
+        String currentUid = getCurrentUid();
+        FirebaseUser firebaseUser = auth.getCurrentUser();
+        if (currentUid == null || firebaseUser == null) {
+            callback.onError("Usuario no autenticado");
+            return;
+        }
+        if (otherUid == null || otherUid.trim().isEmpty()) {
+            callback.onError("No se pudo identificar al usuario");
+            return;
+        }
+        if (currentUid.equals(otherUid)) {
+            callback.onError("No podes iniciar un chat con vos mismo");
+            return;
+        }
+
+        db.collection("users").document(otherUid).get()
+                .addOnSuccessListener(snapshot -> {
+                    UserModel otherUser = snapshot.toObject(UserModel.class);
+                    if (otherUser == null) {
+                        callback.onError("No se pudo cargar el usuario");
+                        return;
+                    }
+                    if (otherUser.getUid() == null || otherUser.getUid().trim().isEmpty()) {
+                        otherUser.setUid(snapshot.getId());
+                    }
+                    createOrOpenChat(currentUid, firebaseUser, otherUser, callback);
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+    }
+
     public void sendMessage(String chatId, String rawText, SimpleCallback callback) {
         String uid = getCurrentUid();
         if (uid == null) {

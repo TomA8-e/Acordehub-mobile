@@ -4,6 +4,8 @@ import android.net.Uri;
 
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -11,6 +13,7 @@ import com.google.firebase.storage.StorageReference;
 import com.example.acordehub.modelos.UserModel;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PerfilRepository {
@@ -36,7 +39,7 @@ public class PerfilRepository {
                 .addOnSuccessListener(snapshot -> {
                     if (snapshot.exists()) {
                         UserModel user = snapshot.toObject(UserModel.class);
-                        callback.onSuccess(user);
+                        attachProducerProfile(uid, user, callback);
                     } else {
                         UserModel user = createDefaultUser();
                         db.collection("users").document(uid)
@@ -69,10 +72,13 @@ public class PerfilRepository {
         data.put("location", user.getLocation());
         data.put("photoUrl", user.getPhotoUrl());
         data.put("favoriteArtists", user.getFavoriteArtists());
+        data.put("producerServices", user.getProducerServices());
+        data.put("producerCredits", user.getProducerCredits());
+        data.put("updatedAt", FieldValue.serverTimestamp());
 
         db.collection("users").document(uid)
                 .set(data, SetOptions.merge())
-                .addOnSuccessListener(unused -> callback.onSuccess())
+                .addOnSuccessListener(unused -> saveProducerProfileIfNeeded(uid, user, callback))
                 .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
@@ -110,6 +116,54 @@ public class PerfilRepository {
                 ? firebaseUser.getDisplayName()
                 : "Usuario";
         return new UserModel(uid, name, email);
+    }
+
+    private void attachProducerProfile(String uid, UserModel user, PerfilCallback callback) {
+        if (user == null) {
+            callback.onSuccess(null);
+            return;
+        }
+
+        db.collection("producerProfiles").document(uid)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) {
+                        applyProducerProfile(user, snapshot);
+                    }
+                    callback.onSuccess(user);
+                })
+                .addOnFailureListener(e -> callback.onSuccess(user));
+    }
+
+    @SuppressWarnings("unchecked")
+    private void applyProducerProfile(UserModel user, DocumentSnapshot snapshot) {
+        Object services = snapshot.get("producerServices");
+        Object credits = snapshot.get("producerCredits");
+        if (services instanceof List) user.setProducerServices((List<String>) services);
+        if (credits instanceof List) user.setProducerCredits((List<String>) credits);
+    }
+
+    private void saveProducerProfileIfNeeded(String uid, UserModel user, SimpleCallback callback) {
+        if (user.getRole() == null || !user.getRole().trim().equalsIgnoreCase("Productor")) {
+            callback.onSuccess();
+            return;
+        }
+
+        Map<String, Object> producerProfile = new HashMap<>();
+        producerProfile.put("uid", uid);
+        producerProfile.put("displayName", user.getName());
+        producerProfile.put("photoUrl", user.getPhotoUrl());
+        producerProfile.put("location", user.getLocation());
+        producerProfile.put("description", user.getDescription());
+        producerProfile.put("genres", user.getGenres());
+        producerProfile.put("producerServices", user.getProducerServices());
+        producerProfile.put("producerCredits", user.getProducerCredits());
+        producerProfile.put("updatedAt", FieldValue.serverTimestamp());
+
+        db.collection("producerProfiles").document(uid)
+                .set(producerProfile, SetOptions.merge())
+                .addOnSuccessListener(unused -> callback.onSuccess())
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
     // ── Callbacks ─────────────────────────────────────────────────────────────

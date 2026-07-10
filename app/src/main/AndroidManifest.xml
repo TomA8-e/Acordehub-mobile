@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Para acceder a la galería en Android 13+ -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <!-- Para Android 12 e inferior -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"/>
@@ -35,8 +36,12 @@
 
         <activity android:name=".ui.SpotifyArtistSearchActivity" android:exported="false"/>
         <activity android:name=".ui.PublishProjectActivity" android:exported="false"/>
+        <activity android:name=".ui.ProjectDetailActivity" android:exported="false"/>
+        <activity android:name=".ui.NotificationsActivity" android:exported="false"/>
+        <activity android:name=".ui.PremiumActivity" android:exported="false"/>
         <activity android:name=".ui.ChatDetailActivity" android:exported="false"/>
         <activity android:name=".ui.ExploreMatchActivity" android:exported="false"/>
+        <activity android:name=".ui.PublicProfileActivity" android:exported="false"/>
 
         <!-- HomeActivity ya no se usa como destino principal, puede eliminarse
              o mantenerse vacía por ahora -->

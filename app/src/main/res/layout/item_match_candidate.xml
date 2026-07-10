@@ -132,11 +132,11 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginTop="14dp"
-            android:text="Me interesa"
+            android:text="Ver perfil"
             android:textColor="@color/white"
             app:backgroundTint="@color/black_primary"
             app:cornerRadius="12dp"
-            app:icon="@drawable/ic_add"
+            app:icon="@drawable/ic_person"
             app:iconTint="@color/white" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -22,7 +22,7 @@ import java.util.List;
 public class MatchCandidateAdapter extends RecyclerView.Adapter<MatchCandidateAdapter.MatchCandidateViewHolder> {
 
     public interface OnCandidateActionListener {
-        void onInterestClick(MatchCandidate candidate);
+        void onProfileClick(MatchCandidate candidate);
     }
 
     private final List<MatchCandidate> candidates = new ArrayList<>();
@@ -85,8 +85,9 @@ public class MatchCandidateAdapter extends RecyclerView.Adapter<MatchCandidateAd
 
             boolean loading = user.getUid() != null && user.getUid().equals(actionLoadingUid);
             binding.btnInterest.setEnabled(!loading);
-            binding.btnInterest.setText(loading ? "Enviando..." : "Me interesa");
-            binding.btnInterest.setOnClickListener(v -> listener.onInterestClick(candidate));
+            binding.btnInterest.setText(loading ? "Abriendo..." : "Ver perfil");
+            binding.btnInterest.setOnClickListener(v -> listener.onProfileClick(candidate));
+            binding.getRoot().setOnClickListener(v -> listener.onProfileClick(candidate));
         }
 
         private void bindPhoto(String photoUrl) {
