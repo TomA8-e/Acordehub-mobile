@@ -34,8 +34,9 @@ service cloud.firestore {
 
     match /chats/{chatId} {
       allow read: if isChatParticipant();
-      allow create: if willBeChatParticipant()
-        && request.resource.data.participantIds.size() == 2;
+      // Coleccion heredada: se conserva lectura para chats existentes, pero
+      // se bloquea la creacion directa para impedir conversaciones sin conexion.
+      allow create: if false;
       allow update: if isChatParticipant() && willBeChatParticipant();
       allow delete: if false;
 
@@ -56,6 +57,65 @@ service cloud.firestore {
           && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 2000;
         allow update, delete: if false;
+      }
+    }
+
+    match /conversations/{conversationId} {
+      function isConversationParticipant() {
+        return signedIn()
+          && resource.data.participants is list
+          && request.auth.uid in resource.data.participants;
+      }
+
+      function keepsConversationIdentity() {
+        return request.resource.data.conversationId == resource.data.conversationId
+          && request.resource.data.participants == resource.data.participants
+          && request.resource.data.participantProfiles == resource.data.participantProfiles
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.sourceTypes == resource.data.sourceTypes
+          && request.resource.data.sources == resource.data.sources;
+      }
+
+      allow read: if isConversationParticipant();
+      // Solo Admin SDK crea conversaciones al aceptar una solicitud valida.
+      allow create, delete: if false;
+      allow update: if isConversationParticipant()
+        && keepsConversationIdentity()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          "lastMessage",
+          "lastMessageType",
+          "lastMessageDate",
+          "lastSenderId",
+          "updatedAt",
+          "unreadCounts"
+        ]);
+
+      match /messages/{messageId} {
+        function parentConversation() {
+          return get(/databases/$(database)/documents/conversations/$(conversationId));
+        }
+
+        function isParentConversationParticipant() {
+          return signedIn()
+            && request.auth.uid in parentConversation().data.participants;
+        }
+
+        allow read: if isParentConversationParticipant();
+        allow create: if isParentConversationParticipant()
+          && request.resource.data.messageId == messageId
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.type == "text"
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000
+          && request.resource.data.read == false
+          && request.resource.data.status == "sent";
+        allow update: if isParentConversationParticipant()
+          && resource.data.senderId != request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["read", "readAt", "status"])
+          && request.resource.data.read == true
+          && request.resource.data.status == "read";
+        allow delete: if false;
       }
     }
 

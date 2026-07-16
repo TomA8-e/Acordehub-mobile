@@ -74,6 +74,20 @@ exports.notifyConnectionRequestUpdated = onDocumentUpdated(
     },
 );
 
+exports.createConversationFromAcceptedConnection = onDocumentUpdated(
+    {document: "connectionRequests/{requestId}", region: "southamerica-east1"},
+    async (event) => {
+      const before = event.data?.before.data();
+      const after = event.data?.after.data();
+      if (before?.status === "accepted" || after?.status !== "accepted") return;
+      if (!after.requesterUid || !after.targetUid) return;
+      await ensureConversation(after.requesterUid, after.targetUid, {
+        type: "connection",
+        id: event.params.requestId,
+      });
+    },
+);
+
 exports.notifyProjectJoinRequestCreated = onDocumentCreated(
     {
       document: "projects/{projectId}/joinRequests/{requesterUid}",
@@ -112,6 +126,23 @@ exports.notifyProjectJoinRequestUpdated = onDocumentUpdated(
     },
 );
 
+exports.createConversationFromAcceptedProjectRequest = onDocumentUpdated(
+    {
+      document: "projects/{projectId}/joinRequests/{requesterUid}",
+      region: "southamerica-east1",
+    },
+    async (event) => {
+      const before = event.data?.before.data();
+      const after = event.data?.after.data();
+      if (before?.status === "accepted" || after?.status !== "accepted") return;
+      if (!after.ownerUid || !after.requesterUid) return;
+      await ensureConversation(after.ownerUid, after.requesterUid, {
+        type: "project",
+        id: event.params.projectId,
+      });
+    },
+);
+
 exports.notifyChatMessageCreated = onDocumentCreated(
     {document: "chats/{chatId}/messages/{messageId}", region: "southamerica-east1"},
     async (event) => {
@@ -133,6 +164,83 @@ exports.notifyChatMessageCreated = onDocumentCreated(
       })));
     },
 );
+
+exports.notifyConversationMessageCreated = onDocumentCreated(
+    {document: "conversations/{conversationId}/messages/{messageId}", region: "southamerica-east1"},
+    async (event) => {
+      const message = event.data?.data();
+      if (!message?.senderId || message.type !== "text") return;
+      const conversationSnapshot = await admin.firestore().collection("conversations")
+          .doc(event.params.conversationId).get();
+      if (!conversationSnapshot.exists) return;
+      const conversation = conversationSnapshot.data();
+      const recipients = (conversation.participants || []).filter((uid) => uid !== message.senderId);
+      const senderName = conversation.participantProfiles?.[message.senderId]?.name || "Nuevo mensaje";
+      await Promise.all(recipients.map((uid) => sendUserNotification(uid, {
+        type: "chat_message",
+        entityId: event.params.messageId,
+        chatId: event.params.conversationId,
+        chatTitle: senderName,
+        title: senderName,
+        body: truncateNotificationText(message.text || "Te envio un mensaje"),
+      })));
+    },
+);
+
+exports.syncAcceptedConversations = onRequest(async (req, res) => {
+  setCorsHeaders(res);
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+  if (req.method !== "POST") {
+    res.status(405).json({error: "method_not_allowed"});
+    return;
+  }
+
+  try {
+    const decodedToken = await verifyFirebaseToken(req);
+    const db = admin.firestore();
+    const uid = decodedToken.uid;
+    const [outgoingConnections, incomingConnections, requestedProjects, ownedProjects] = await Promise.all([
+      db.collection("connectionRequests").where("requesterUid", "==", uid).get(),
+      db.collection("connectionRequests").where("targetUid", "==", uid).get(),
+      db.collectionGroup("joinRequests").where("requesterUid", "==", uid).get(),
+      db.collectionGroup("joinRequests").where("ownerUid", "==", uid).get(),
+    ]);
+
+    const acceptedPairs = new Map();
+    [...outgoingConnections.docs, ...incomingConnections.docs].forEach((snapshot) => {
+      const request = snapshot.data();
+      if (request.status !== "accepted" || !request.requesterUid || !request.targetUid) return;
+      const key = buildConversationId(request.requesterUid, request.targetUid);
+      acceptedPairs.set(key, {
+        firstUid: request.requesterUid,
+        secondUid: request.targetUid,
+        source: {type: "connection", id: snapshot.id},
+      });
+    });
+    [...requestedProjects.docs, ...ownedProjects.docs].forEach((snapshot) => {
+      const request = snapshot.data();
+      if (request.status !== "accepted" || !request.ownerUid || !request.requesterUid) return;
+      const projectId = snapshot.ref.parent.parent?.id;
+      if (!projectId) return;
+      const key = buildConversationId(request.ownerUid, request.requesterUid);
+      acceptedPairs.set(key, {
+        firstUid: request.ownerUid,
+        secondUid: request.requesterUid,
+        source: {type: "project", id: projectId},
+      });
+    });
+
+    const conversationIds = await Promise.all(Array.from(acceptedPairs.values()).map((pair) =>
+      ensureConversation(pair.firstUid, pair.secondUid, pair.source)));
+    res.status(200).json({conversationIds});
+  } catch (error) {
+    console.error("syncAcceptedConversations failed", error);
+    res.status(error.statusCode || 500).json({error: error.publicCode || "conversation_sync_error"});
+  }
+});
 
 exports.createProject = onRequest(async (req, res) => {
   setCorsHeaders(res);
@@ -744,6 +852,64 @@ function getPublicFunctionsBaseUrl() {
   }
   const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
   return `https://us-central1-${projectId}.cloudfunctions.net`;
+}
+
+function buildConversationId(firstUid, secondUid) {
+  return [firstUid, secondUid].sort().join("_");
+}
+
+async function ensureConversation(firstUid, secondUid, source) {
+  if (!firstUid || !secondUid || firstUid === secondUid) {
+    throw publicError(400, "invalid_conversation_participants");
+  }
+
+  const db = admin.firestore();
+  const participants = [firstUid, secondUid].sort();
+  const conversationId = buildConversationId(firstUid, secondUid);
+  const conversationRef = db.collection("conversations").doc(conversationId);
+  const userRefs = participants.map((uid) => db.collection("users").doc(uid));
+
+  await db.runTransaction(async (transaction) => {
+    const conversationSnapshot = await transaction.get(conversationRef);
+    if (conversationSnapshot.exists) {
+      transaction.set(conversationRef, {
+        sourceTypes: admin.firestore.FieldValue.arrayUnion(source.type),
+        sources: admin.firestore.FieldValue.arrayUnion(source),
+      }, {merge: true});
+      return;
+    }
+
+    const userSnapshots = await transaction.getAll(...userRefs);
+    const participantProfiles = {};
+    userSnapshots.forEach((snapshot, index) => {
+      const uid = participants[index];
+      const profile = snapshot.data() || {};
+      participantProfiles[uid] = {
+        uid,
+        name: cleanString(profile.name, 120) || "Usuario",
+        photoUrl: cleanString(profile.photoUrl, 1000),
+        role: cleanString(profile.role, 120) || "Musico",
+        online: false,
+      };
+    });
+
+    transaction.create(conversationRef, {
+      conversationId,
+      participants,
+      participantProfiles,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      lastMessage: "",
+      lastMessageType: "text",
+      lastMessageDate: null,
+      lastSenderId: null,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      unreadCounts: {[participants[0]]: 0, [participants[1]]: 0},
+      sourceTypes: [source.type],
+      sources: [source],
+    });
+  });
+
+  return conversationId;
 }
 
 function setCorsHeaders(res) {
