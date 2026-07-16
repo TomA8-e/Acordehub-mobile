@@ -703,6 +703,9 @@ async function mercadoPagoRequest(path, method, body) {
   if (!response.ok) {
     const error = new Error(`Mercado Pago ${method} ${path} failed`);
     error.statusCode = response.status >= 400 && response.status < 500 ? 502 : 500;
+    if (response.status === 401 || response.status === 403) {
+      error.publicCode = "mercado_pago_credentials_invalid";
+    }
     error.payload = payload;
     throw error;
   }
