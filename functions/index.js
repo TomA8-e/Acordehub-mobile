@@ -17,19 +17,19 @@ let spotifyAccessTokenExpiresAt = 0;
 const PLAN_CONFIG = {
   plus: {
     displayName: "Plus",
-    amount: 3.99,
+    amount: 3990,
     currency: "ARS",
     description: "AcordeHub Plus mensual",
   },
   pro: {
     displayName: "Pro",
-    amount: 7.99,
+    amount: 7990,
     currency: "ARS",
     description: "AcordeHub Pro mensual",
   },
   producer: {
     displayName: "Producer",
-    amount: 9.99,
+    amount: 9990,
     currency: "ARS",
     description: "AcordeHub Producer mensual",
   },
@@ -326,6 +326,7 @@ exports.createMercadoPagoPreference = onRequest(
           payer_email: decodedToken.email || user.email,
           external_reference: paymentRef.id,
           back_url: backUrl,
+          notification_url: `${publicBaseUrl}/mercadoPagoWebhook?source_news=webhooks`,
           auto_recurring: {
             frequency: 1,
             frequency_type: "months",
@@ -354,6 +355,7 @@ exports.createMercadoPagoPreference = onRequest(
         }, {merge: true});
 
         res.status(200).json({
+          paymentPreferenceId: paymentRef.id,
           preferenceId: preference.id,
           checkoutUrl: preference.init_point,
           sandboxCheckoutUrl: preference.sandbox_init_point,
@@ -362,6 +364,65 @@ exports.createMercadoPagoPreference = onRequest(
         console.error("createMercadoPagoPreference failed", error);
         res.status(error.statusCode || 500).json({
           error: error.publicCode || "payment_preference_error",
+        });
+      }
+    },
+);
+
+exports.syncMercadoPagoSubscription = onRequest(
+    {secrets: [mercadoPagoAccessToken]},
+    async (req, res) => {
+      setCorsHeaders(res);
+      if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+      }
+      if (req.method !== "POST") {
+        res.status(405).json({error: "method_not_allowed"});
+        return;
+      }
+
+      try {
+        const decodedToken = await verifyFirebaseToken(req);
+        const paymentPreferenceId = cleanString(
+            req.body?.paymentPreferenceId,
+            80,
+        );
+        if (!paymentPreferenceId) {
+          throw publicError(400, "invalid_payment_preference");
+        }
+
+        const paymentRef = admin.firestore()
+            .collection("paymentPreferences")
+            .doc(paymentPreferenceId);
+        const snapshot = await paymentRef.get();
+        if (!snapshot.exists || snapshot.data().uid !== decodedToken.uid) {
+          throw publicError(404, "payment_preference_not_found");
+        }
+
+        const paymentRecord = snapshot.data();
+        if (!paymentRecord.preapprovalId) {
+          throw publicError(409, "payment_preference_pending");
+        }
+
+        const subscription = await mercadoPagoRequest(
+            `/preapproval/${encodeURIComponent(paymentRecord.preapprovalId)}`,
+            "GET",
+        );
+        if (String(subscription.external_reference) !== paymentPreferenceId) {
+          throw publicError(409, "payment_reference_mismatch");
+        }
+
+        const result = await applySubscriptionState(
+            paymentRef,
+            paymentRecord,
+            subscription,
+        );
+        res.status(200).json(result);
+      } catch (error) {
+        console.error("syncMercadoPagoSubscription failed", error);
+        res.status(error.statusCode || 500).json({
+          error: error.publicCode || "payment_sync_error",
         });
       }
     },
@@ -391,7 +452,7 @@ exports.cancelSubscription = onRequest(
           await mercadoPagoRequest(
               `/preapproval/${encodeURIComponent(user.subscriptionId)}`,
               "PUT",
-              {status: "cancelled"},
+              {status: "canceled"},
           );
         }
 
@@ -477,13 +538,51 @@ exports.mercadoPagoWebhook = onRequest(
           return;
         }
 
-        const isSubscription = type === "subscription_preapproval" ||
-          type === "preapproval" ||
-          type === "subscription_authorized_payment";
-        const payment = isSubscription
-          ? await mercadoPagoRequest(`/preapproval/${paymentId}`, "GET")
-          : await mercadoPagoRequest(`/v1/payments/${paymentId}`, "GET");
-        const paymentPreferenceId = payment.external_reference;
+        let paymentPreferenceId = "";
+        let subscription = null;
+        let paymentStatus = null;
+        let paymentStatusDetail = null;
+        let webhookDetails = {};
+
+        if (type === "subscription_preapproval" || type === "preapproval") {
+          subscription = await mercadoPagoRequest(
+              `/preapproval/${encodeURIComponent(paymentId)}`,
+              "GET",
+          );
+          paymentPreferenceId = String(subscription.external_reference || "");
+          paymentStatus = subscription.status || null;
+          webhookDetails = {mercadoPagoPreapprovalId: String(paymentId)};
+        } else if (type === "subscription_authorized_payment") {
+          const authorizedPayment = await mercadoPagoRequest(
+              `/authorized_payments/${encodeURIComponent(paymentId)}`,
+              "GET",
+          );
+          paymentPreferenceId = String(authorizedPayment.external_reference || "");
+          paymentStatus = authorizedPayment.payment?.status ||
+            authorizedPayment.status || null;
+          paymentStatusDetail = authorizedPayment.payment?.status_detail || null;
+          webhookDetails = {
+            mercadoPagoAuthorizedPaymentId: String(paymentId),
+            mercadoPagoPaymentId: authorizedPayment.payment?.id ?
+              String(authorizedPayment.payment.id) : null,
+          };
+          if (authorizedPayment.preapproval_id) {
+            subscription = await mercadoPagoRequest(
+                `/preapproval/${encodeURIComponent(authorizedPayment.preapproval_id)}`,
+                "GET",
+            );
+          }
+        } else {
+          const payment = await mercadoPagoRequest(
+              `/v1/payments/${encodeURIComponent(paymentId)}`,
+              "GET",
+          );
+          paymentPreferenceId = String(payment.external_reference || "");
+          paymentStatus = payment.status || null;
+          paymentStatusDetail = payment.status_detail || null;
+          webhookDetails = {mercadoPagoPaymentId: String(paymentId)};
+        }
+
         if (!paymentPreferenceId) {
           res.status(200).json({received: true});
           return;
@@ -498,31 +597,22 @@ exports.mercadoPagoWebhook = onRequest(
           return;
         }
 
-        const paymentRecord = paymentSnapshot.data();
-        const planId = paymentRecord.planId;
         await paymentRef.set({
-          mercadoPagoPaymentId: String(paymentId),
-          mercadoPagoPreapprovalId: isSubscription ? String(paymentId) : null,
-          mercadoPagoStatus: payment.status || null,
-          mercadoPagoStatusDetail: payment.status_detail || null,
-          status: isSuccessfulMercadoPagoStatus(payment.status) ? "approved" : payment.status || "updated",
+          ...webhookDetails,
+          mercadoPagoStatus: paymentStatus,
+          mercadoPagoStatusDetail: paymentStatusDetail,
+          status: isSuccessfulMercadoPagoStatus(paymentStatus) ?
+            "approved" : paymentStatus || "updated",
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         }, {merge: true});
 
-        if (isSuccessfulMercadoPagoStatus(payment.status) && PLAN_CONFIG[planId]) {
-          const expiresAt = new Date();
-          expiresAt.setMonth(expiresAt.getMonth() + 1);
-
-          await admin.firestore().collection("users").doc(paymentRecord.uid).set({
-            plan: planId,
-            subscriptionStatus: "active",
-            subscriptionProvider: "mercadopago",
-            subscriptionId: String(paymentId),
-            subscriptionStartedAt: admin.firestore.FieldValue.serverTimestamp(),
-            subscriptionExpiresAt: admin.firestore.Timestamp.fromDate(expiresAt),
-            autoRenew: false,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          }, {merge: true});
+        if (subscription) {
+          await applySubscriptionState(
+              paymentRef,
+              paymentSnapshot.data(),
+              subscription,
+              paymentStatus,
+          );
         }
 
         res.status(200).json({received: true});
@@ -532,6 +622,59 @@ exports.mercadoPagoWebhook = onRequest(
       }
     },
 );
+
+async function applySubscriptionState(
+    paymentRef,
+    paymentRecord,
+    subscription,
+    latestPaymentStatus = null,
+) {
+  const planId = paymentRecord.planId;
+  const subscriptionStatus = String(subscription.status || "pending");
+  const active = subscriptionStatus === "authorized" &&
+    (!latestPaymentStatus || isSuccessfulMercadoPagoStatus(latestPaymentStatus));
+  const canceled = subscriptionStatus === "cancelled" ||
+    subscriptionStatus === "canceled";
+
+  await paymentRef.set({
+    mercadoPagoPreapprovalId: String(subscription.id),
+    mercadoPagoStatus: subscriptionStatus,
+    status: active ? "approved" : subscriptionStatus,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  }, {merge: true});
+
+  if (active && PLAN_CONFIG[planId]) {
+    const expiresAt = new Date();
+    expiresAt.setUTCMonth(expiresAt.getUTCMonth() + 1);
+    await admin.firestore().collection("users").doc(paymentRecord.uid).set({
+      plan: planId,
+      subscriptionStatus: "active",
+      subscriptionProvider: "mercadopago",
+      subscriptionId: String(subscription.id),
+      subscriptionStartedAt: admin.firestore.FieldValue.serverTimestamp(),
+      subscriptionExpiresAt: admin.firestore.Timestamp.fromDate(expiresAt),
+      autoRenew: true,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, {merge: true});
+    return {plan: planId, status: "active"};
+  }
+
+  if (canceled) {
+    const userRef = admin.firestore().collection("users").doc(paymentRecord.uid);
+    const userSnapshot = await userRef.get();
+    if (userSnapshot.data()?.subscriptionId === String(subscription.id)) {
+      await userRef.set({
+        plan: "free",
+        subscriptionStatus: "cancelled",
+        autoRenew: false,
+        subscriptionExpiresAt: admin.firestore.FieldValue.delete(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, {merge: true});
+    }
+  }
+
+  return {plan: planId, status: subscriptionStatus};
+}
 
 async function verifyFirebaseToken(req) {
   const authorization = req.get("Authorization") || "";
